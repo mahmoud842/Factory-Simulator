@@ -29,6 +29,7 @@ function App() {
     Queue: Queue
   };
   
+  
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     []
@@ -109,7 +110,7 @@ function App() {
             <div className="app-with-above-buttons">
               <div className="number-button">
                 <button onClick={decrement}>-</button>
-                <p>Number Of Items <div>{count}</div></p>
+                {/* <p>Number Of Items <div>{count}</div></p> */}
                 
                 <button onClick={increment}>+</button>
               </div>
