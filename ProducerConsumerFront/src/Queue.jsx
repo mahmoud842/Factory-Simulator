@@ -49,43 +49,24 @@ const Queue = ({ data }) => {
             <Handle
                 type="source"
                 position={Position.Right}
-                id="source-right-1"
+                id="source-right"
                 style={{
                     background: '#555',
-                    top: '30%',
-                    transform: 'translateY(-50%)',
-                }}
-            />
-            <Handle
-                type="source"
-                position={Position.Right}
-                id="source-right-2"
-                style={{
-                    background: '#555',
-                    top: '70%',
+                    top: '50%',
                     transform: 'translateY(-50%)',
                 }}
             />
             <Handle
                 type="target"
                 position={Position.Left}
-                id="target-left-1"
+                id="target-left"
                 style={{
                     background: '#555',
-                    top: '30%',
+                    top: '50%',
                     transform: 'translateY(-50%)',
                 }}
             />
-            <Handle
-                type="target"
-                position={Position.Left}
-                id="target-left-2"
-                style={{
-                    background: '#555',
-                    top: '70%',
-                    transform: 'translateY(-50%)',
-                }}
-            />
+
         </div>
     );
 };

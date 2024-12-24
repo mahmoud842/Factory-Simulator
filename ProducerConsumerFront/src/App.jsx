@@ -10,11 +10,16 @@ import './App.css';
 function App() {
 
   const appNodes = [];
+
   const appEdges = [];
+
   const [nodes, setNodes] = useState(appNodes);
   const [edges, setEdges] = useState(appEdges);
   const { screenToFlowPosition } = useReactFlow();
+
+
   const [type, setType] = useDnD();
+
   const [count, setCount] = useState(0);
   const id = useRef(0);
 
@@ -101,7 +106,9 @@ function App() {
   };
 
   const onDragStart = (event, nodeType) => {
-    console.log("Dragging", nodeType);
+    console.log("Dragging", edges);
+    console.log("Dragging", nodes);
+
     setType(nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
