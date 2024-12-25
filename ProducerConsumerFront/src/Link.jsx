@@ -1,18 +1,36 @@
+const Link = ({ id, sourceX, sourceY, targetX, targetY, style }) => {
+    // Define the edge style explicitly for a thin, solid straight line
+    const edgeStyle = {
+        stroke: 'green', // Set the color of the line
+        strokeWidth: 1, // Set the line thickness
+        fill: 'none', // Ensure no fill color for the path
+    };
 
+    // Straight line path
+    const path = `M${sourceX},${sourceY} L${targetX},${targetY}`; // Straight line from source to target
 
-// const Link = ({ id, sourceX, sourceY, targetX, targetY, style }) => {
-//     const edgeStyle = {
-//         ...style,
-//         stroke: 'blue', // Set the edge color
-//         strokeWidth: 2, // Set the width of the edge
-//         strokeDasharray: '5,5', // Dotted line style
-//     };
+    return (
+        <>
+            <defs>
+                <marker
+                    id="arrowhead"
+                    markerWidth="10"
+                    markerHeight="7"
+                    refX="10"
+                    refY="3.5"
+                    orient="auto"
+                >
+                    <polygon points="0 0, 10 3.5, 0 7" fill="green" />
+                </marker>
+            </defs>
+            <path
+                id={id}
+                d={path}
+                style={edgeStyle}
+                markerEnd="url(#arrowhead)" // Use the arrowhead marker
+            />
+        </>
+    );
+};
 
-//     const path = `M${sourceX},${sourceY}C${(sourceX + targetX) / 2},${sourceY} ${(sourceX + targetX) / 2},${targetY} ${targetX},${targetY}`;
-
-//     return (
-//         <path id={id} d={path} style={edgeStyle} />
-//     );
-// };
-
-// export default Link;
+export default Link;

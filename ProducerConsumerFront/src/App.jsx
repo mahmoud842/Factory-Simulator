@@ -4,6 +4,7 @@ import '@xyflow/react/dist/style.css';
 import { useDnD} from './ContextDnD';
 import Machine from './Machine'
 import Queue from './Queue';
+import Link from './Link'
 import './App.css';
 
 
@@ -33,6 +34,10 @@ function App() {
     Machine: Machine,
     Queue: Queue
   };
+
+  const edgeTypes={
+    Link:Link,
+  }
   
   
   const onNodesChange = useCallback(
@@ -46,9 +51,13 @@ function App() {
   );
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params) => {
+      const newEdge = { ...params, type: 'Link' }; // Add the type property
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
     []
   );
+  
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -176,6 +185,7 @@ function App() {
                             onDragOver={onDragOver}
                             attributionPosition="bottom-left"
                             nodeTypes={nodeTypes}
+                            edgeTypes={edgeTypes}
                             fitView
                           >
                             <Controls />
