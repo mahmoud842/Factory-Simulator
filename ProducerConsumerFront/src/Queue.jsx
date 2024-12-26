@@ -1,9 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
 
 const Queue = ({ data }) => {
-    // Generate mock queue items for visual representation
-    const queueItems = data.items || ['Item 1', 'Item 2', 'Item 3'];
-
+    
     return (
         <div
             style={{
@@ -16,36 +14,46 @@ const Queue = ({ data }) => {
                 alignItems: 'center',
                 position: 'relative',
                 width: 90,
+                height: 90,
             }}
         >
             <p style={{ margin: '0 0 8px', fontWeight: 'bold', fontSize: 12, color: '#333' }}>
                 {data.label || 'Queue'}
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {queueItems.map((item, index) => (
-                    <div
-                        key={index}
-                        style={{
-                            width: 80,
-                            height: 20,
-                            background: '#e0e0e0',
-                            border: '1px solid #999',
-                            borderRadius: 2,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 10,
-                            fontWeight: 'bold',
-                            color: '#333',
-                        }}
-                    >
-                        {item}
-                    </div>
-                ))}
+            {/* Rectangle containing the image and counter */}
+            <div
+                style={{
+                    width: 70,
+                    height: 70,
+                    background: '#e0e0e0',
+                    border: '1px solid #999',
+                    borderRadius: 5,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                {/* Placeholder for image */}
+                <img
+                    src="src/assets/pics/queue (1).png"
+                    style={{ width: 50, height: 50 }}
+                />
+                {/* Counter */}
+                <div
+                    style={{
+                        marginTop: 5,
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        color: '#333',
+                    }}
+                >
+                    Items: {data.items}
+                </div>
             </div>
 
-            {/* Multiple Handles for connections */}
+            {/* Handles for connections */}
             <Handle
                 type="source"
                 position={Position.Right}
@@ -66,7 +74,6 @@ const Queue = ({ data }) => {
                     transform: 'translateY(-50%)',
                 }}
             />
-
         </div>
     );
 };

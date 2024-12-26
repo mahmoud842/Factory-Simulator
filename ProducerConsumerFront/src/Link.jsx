@@ -2,7 +2,7 @@ const Link = ({ id, sourceX, sourceY, targetX, targetY, style }) => {
     // Define the edge style explicitly for a thin, solid straight line
     const edgeStyle = {
         stroke: 'green', // Set the color of the line
-        strokeWidth: 1, // Set the line thickness
+        strokeWidth: 2, // Set the line thickness
         fill: 'none', // Ensure no fill color for the path
     };
 
