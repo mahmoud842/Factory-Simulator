@@ -1,10 +1,11 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef ,useEffect} from 'react';
 import { ReactFlow, Background, Controls, applyNodeChanges, applyEdgeChanges, addEdge, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useDnD } from './ContextDnD';
 import Machine from './Machine';
 import Queue from './Queue';
 import Link from './Link';
+import Productt from './Productt'
 import './App.css';
 
 function App() {
@@ -20,8 +21,9 @@ function App() {
   const nodeTypes = {
     Machine,
     Queue,
+    Productt,
   };
-
+  
   const edgeTypes = {
     Link,
   };
@@ -51,51 +53,123 @@ function App() {
 
   const onDrop = useCallback(
     (event) => {
-      event.preventDefault();
+        event.preventDefault();
+        if (!type) return;
 
-      if (!type) {
-        return;
-      }
+        const position = screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+        });
 
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
+        if (type === 'Productt') {
+            const queueNode = nodes.find(node => {
+                if (node.type !== 'Queue') return false;
+                return (
+                    position.x >= node.position.x &&
+                    position.x <= node.position.x + 90 &&
+                    position.y >= node.position.y &&
+                    position.y <= node.position.y + node.data.products.length * 20 + 50
+                );
+            });
 
-      const newNode = {
-        id: getId(),
-        type,
-        position,
-        data: { label: `${type}` },
-      };
+            if (queueNode) {
+                setNodes(nds => nds.map(node => {
+                    if (node.id === queueNode.id) {
+                        return {
+                            ...node,
+                            data: {
+                                ...node.data,
+                                products: [...node.data.products, { color: '#e0e0e0' }],
+                                onProductUpdate: (nodeId, updatedProducts) => {
+                                    setNodes(nodes => nodes.map(n => 
+                                        n.id === nodeId ? { ...n, data: { ...n.data, products: updatedProducts }} : n
+                                    ));
+                                }
+                            }
+                        };
+                    }
+                    return node;
+                }));
+                return;
+            }
+            return;
+        }
 
-      setNodes((nds) => {
-        const updatedNodes = [...nds, newNode];
-  
-        // Filter nodes after updating
-        const machineNodes = updatedNodes.filter((node) => node.type === 'Machine');
-        const queueNodes = updatedNodes.filter((node) => node.type === 'Queue');
-  
-        console.log('Machine Nodes Array:', machineNodes);
-        console.log('Queue Nodes Array:', queueNodes);
-  
-        return updatedNodes;
-      });
+        const newNode = {
+            id: getId(),
+            type,
+            position,
+            data: { 
+                label: `${type}`, 
+                products: [],
+                onProductUpdate: (nodeId, updatedProducts) => {
+                    setNodes(nodes => nodes.map(n => 
+                        n.id === nodeId ? { ...n, data: { ...n.data, products: updatedProducts }} : n
+                    ));
+                }
+            },
+        };
 
+        setNodes(nds => [...nds, newNode]);
     },
-    [screenToFlowPosition, type]
-  );
-
+    [nodes, type, screenToFlowPosition]
+);
+      
+console.log(nodes)
   const handleClear = () => {
     setNodes([]);
     setEdges([]);
     id.current = 0;
   };
+  const [socket, setSocket] = useState(null);
+
+const handleSimulation = async () => {
+  try {
+    const response = await fetch('http://localhost:8080/simulation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nodes, edges })
+    });
+
+    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+    
+    // Start WebSocket connection
+    const newSocket = new WebSocket('ws://localhost:8080/simulation-updates');
+    
+    newSocket.onmessage = (event) => {
+      const update = JSON.parse(event.data);
+      setNodes(update)
+      console.log('Simulation update:', update);
+    };
+
+    newSocket.onclose = () => {
+      console.log('Simulation completed');
+      setSocket(null);
+    };
+
+    setSocket(newSocket);
+
+    const data = await response.json();
+    console.log('Simulation started:', data);
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+
+// Cleanup on component unmount
+useEffect(() => {
+  return () => {
+    if (socket) socket.close();
+  };
+}, [socket]);
 
   const onDragStart = (event, nodeType) => {
+    
     setType(nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
+  
 
 
   return (
@@ -124,8 +198,16 @@ function App() {
             <img src="src/assets/pics/queue (1).png" alt="Queue" />
             Queue
           </div>
+          <div
+            className="button"
+            onDragStart={(event) => onDragStart(event, 'Productt')}
+            draggable
+          >
+            <img src="src/assets/pics/product.png" alt="Queue" />
+            product
+          </div>
           <h2>Process</h2>
-          <div className="button" onClick={() => console.log('Simulate clicked')}>
+          <div className="button" onClick={handleSimulation}>
             <img src="src/assets/pics/play-button.png" alt="Simulate" />
             Simulate
           </div>
