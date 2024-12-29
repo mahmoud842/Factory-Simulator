@@ -21,7 +21,6 @@ public class SimulationService {
     }
 
     public boolean startSimulation() {
-        if (!graph.isReady()) return false;
         return graph.startSimulation();
     }
     
@@ -31,6 +30,10 @@ public class SimulationService {
 
     public boolean resumeSimulation() {
         return graph.resumeSimulation();
+    }
+
+    public boolean replaySimulation() {
+        return graph.replaySimulation();
     }
 
 }

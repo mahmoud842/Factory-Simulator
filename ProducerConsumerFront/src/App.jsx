@@ -130,14 +130,13 @@ function App() {
     },
     [nodes, type, screenToFlowPosition]
 );
-      
-console.log(nodes)
-  const handleClear = () => {
-    setNodes([]);
-    setEdges([]);
-    id.current = 0;
-  };
-  const [socket, setSocket] = useState(null);
+
+const handleClear = () => {
+  setNodes([]);
+  setEdges([]);
+  id.current = 0;
+};
+const [socket, setSocket] = useState(null);
 
 const handleSimulation = async () => {
   try {
@@ -256,9 +255,6 @@ useEffect(() => {
   };
   
   const factoryStructure = builder(nodes, edges);
-  console.log(factoryStructure);
-  
-
 
   return (
     <div className="app-with-above-buttons">

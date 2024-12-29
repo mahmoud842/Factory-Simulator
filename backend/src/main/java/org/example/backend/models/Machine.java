@@ -108,4 +108,18 @@ public class Machine implements Runnable {
             pauseLock.notifyAll();
         }
     }
+
+    // remove item in it and calculate new sleep time
+    public void clearMachine() {
+        this.activeItem = null;
+        this.sleepTime = getRandomTime();
+    }
+
+    public long getSleepTime() {
+        return sleepTime;
+    }
+
+    public void setSleepTime(long time) {
+        this.sleepTime = time;
+    }
 }

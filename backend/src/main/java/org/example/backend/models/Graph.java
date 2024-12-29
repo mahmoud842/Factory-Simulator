@@ -8,47 +8,61 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Graph {
+    ItemsManager itemsManager;
+    SimulationData simulationData;
     Map<Long, Machine> machines;
     Map<Long, ItemQueue> queues;
-    long totalItems;
-    boolean ready;
     List<Thread> threads;
     ItemQueue endQueue;
     ItemQueue startQueue;
+    long totalItems;
+    boolean ready;
     boolean running;
     boolean paused;
 
     public Graph() {
+        this.itemsManager = new ItemsManager();
+        this.simulationData = null;
         this.machines = new HashMap<>();
         this.queues = new HashMap<>();
+        this.threads = new ArrayList<>();
         this.totalItems = 0;
         this.ready = false;
-        this.threads = new ArrayList<>();
         this.running = false;
         this.paused = false;
     }
 
+    public boolean replaySimulation() {
+        if (running || !ready || simulationData == null) return false;
+        running = true;
+        paused = false;
+        itemsManager.setComponents(simulationData.getItems(), simulationData.getItemsSleepTime(), startQueue);
+        setMachinesSleepTime(simulationData.getMachineSleepTime());
+        clearQueues();
+        clearMachines();
+        setUpThreads();        
+        startThreads();
+        return true;
+    }
+
     public boolean startSimulation() {
-        if (running)
+        if (running || !ready)
             return false;
         running = true;
+        paused = false;
 
-        threads.clear();
-        startQueue.clearQueue();
-        endQueue.clearQueue();
-        for (Map.Entry<Long, Machine> entry : machines.entrySet()) {
-            System.out.print("machine: ");
-            System.out.print(entry.getKey());
-            System.out.print(" ");
-            System.out.println(entry.getValue());
-            threads.add(new Thread(entry.getValue()));
-        }
+        itemsManager.generateComponents(totalItems, startQueue);
+        simulationData = new SimulationData(
+            getMachinesSleepTime(),
+            itemsManager.getItems(),
+            itemsManager.getItemsSleepTime()
+        );
+        
+        clearQueues();
+        clearMachines();
+        setUpThreads();        
+        startThreads();
 
-        for (int i = 0; i < threads.size(); i++){
-            threads.get(i).start();
-        }
-
-        startQueue.addItems(totalItems);
         return true;
     }
 
@@ -57,6 +71,7 @@ public class Graph {
         for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
             machine.getValue().pause();
         }
+        itemsManager.pause();
         paused = true;
         return true;
     }
@@ -66,15 +81,46 @@ public class Graph {
         for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
             machine.getValue().resume();;
         }
+        itemsManager.resume();
         paused = false;
         return true;
     }
 
     public void endSimulation() {
+        interruptThreads();
+        running = false;
+    }
+
+    public void setUpThreads() {
+        threads.clear();
+        for (Map.Entry<Long, Machine> entry : machines.entrySet()) {
+            threads.add(new Thread(entry.getValue()));
+        }
+        threads.add(new Thread(itemsManager));
+    }
+
+    public void startThreads() {
+        for (int i = 0; i < threads.size(); i++){
+            threads.get(i).start();
+        }
+    }
+
+    public void interruptThreads() {
         for (int i = 0; i < threads.size(); i++){
             threads.get(i).interrupt();
         }
-        running = false;
+    }
+
+    public void clearQueues() {
+        for (Map.Entry<Long, ItemQueue> q : queues.entrySet()) {
+            q.getValue().clearQueue();
+        }
+    }
+
+    public void clearMachines() {
+        for (Map.Entry<Long, Machine> m : machines.entrySet()) {
+            m.getValue().clearMachine();
+        }
     }
 
     public boolean isReady() {
@@ -121,6 +167,8 @@ public class Graph {
     }
 
     public boolean build(GraphDTO graphDTO) {
+        if (running)
+            return false;
 
         if (!validGraphDTO(graphDTO))
             return false;
@@ -153,17 +201,13 @@ public class Graph {
         endQueue = getEndQueue();
         endQueue.setAsEndQueue(totalItems, this);
 
-        // System.out.println(startQueue.getId());
-        // System.out.println(endQueue.getId());
-
+        simulationData = null;
+        paused = false;
         ready = true;
         return true;
     }
 
     public GraphDTO getState() {
-        if (!running)
-            return new GraphDTO(null, null, 0);
-
         List<QueueDTO> queuesDTO = new ArrayList<>();
         for (Map.Entry<Long, ItemQueue> entry : queues.entrySet()) {
             QueueDTO newQueue = new QueueDTO(
@@ -184,6 +228,23 @@ public class Graph {
             machinesDTO.add(newMachine);
         }
 
+        if (!running)
+            return new GraphDTO(machinesDTO, queuesDTO, 0);
+        
         return new GraphDTO(machinesDTO, queuesDTO, totalItems);
+    }
+
+    private Map<Long, Long> getMachinesSleepTime() {
+        Map<Long, Long> machinesSleepTime = new HashMap<>();
+        for (Map.Entry<Long, Machine> m : machines.entrySet()) {
+            machinesSleepTime.put(m.getKey(), m.getValue().getSleepTime());
+        }
+        return machinesSleepTime;
+    }
+
+    private void setMachinesSleepTime(Map<Long, Long> machinesSleepTime) {
+        for (Map.Entry<Long, Long> m : machinesSleepTime.entrySet()) {
+            machines.get(m.getKey()).setSleepTime(m.getValue());
+        }
     }
 }

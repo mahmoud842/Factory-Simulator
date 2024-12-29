@@ -38,13 +38,20 @@ public class SimulationController {
     public String pauseSimulation() {
         if (simulationService.pauseSimulation())
             return "simulation paused";
-        return "faild to pause simulation";
+        return "failed to pause simulation";
     }
 
     @PostMapping("/resumeSimulation")
     public String resumeSimulation() {
         if (simulationService.resumeSimulation())
             return "simulation resumed";
-        return "faild to resume simulation";
+        return "failed to resume simulation";
+    }
+
+    @PostMapping("/replaySimulation")
+    public String replaySimulation() {
+        if (simulationService.replaySimulation())
+            return "simulation replay started";
+        return "failed to replay simulation";
     }
 }
