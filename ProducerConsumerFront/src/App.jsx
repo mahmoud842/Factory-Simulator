@@ -38,13 +38,29 @@ function App() {
     []
   );
 
-  const onConnect = useCallback(
-    (params) => {
-      const newEdge = { ...params, type: 'Link' };
-      setEdges((eds) => addEdge(newEdge, eds));
-    },
-    []
-  );
+  const onConnect = useCallback((params) => {
+    const sourceNode = nodes.find(node => node.id === params.source);
+    const targetNode = nodes.find(node => node.id === params.target);
+  
+    if (!sourceNode || !targetNode) return;
+  
+    if (sourceNode.type === targetNode.type) {
+      console.log(`Invalid connection: ${sourceNode.type} to ${targetNode.type}`);
+      return;
+    }
+
+    if (sourceNode.type === 'Machine') {
+      const existingEdge = edges.find(edge => edge.source === params.source);
+      if (existingEdge) {
+        console.log('Machine already has an output connection');
+        return;
+      }
+    }
+  
+    const newEdge = { ...params, type: 'Link' };
+    setEdges((eds) => addEdge(newEdge, eds));
+  }, [nodes, edges]);
+
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -169,6 +185,78 @@ useEffect(() => {
     setType(nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
+
+  const builder = (nodes, edges) => {
+    const machines = [];
+    const queues = [];
+    const queueMap = new Map();
+  
+
+    nodes.forEach((node) => {
+      if (node.type === 'Machine') {
+        machines.push({
+          id: parseInt(node.id.replace('dndnode_', '')),
+          outputQueueIds: [],
+          inputQueueIds: [],
+          products: node.data.products || [],
+        });
+      } else if (node.type === 'Queue') {
+        const queueId = parseInt(node.id.replace('dndnode_', ''));
+        queues.push({
+          id: queueId,
+          products: node.data.products || [],
+        });
+        queueMap.set(node.id, node.data.products || []);
+      }
+    });
+  
+
+    edges.forEach((edge) => {
+      const sourceId = edge.source;
+      const targetId = edge.target;
+      const sourceNode = nodes.find((node) => node.id === sourceId);
+      const targetNode = nodes.find((node) => node.id === targetId);
+  
+      if (!sourceNode || !targetNode) return;
+  
+
+      if (sourceNode.type === 'Machine' && targetNode.type === 'Queue') {
+        const machine = machines.find(
+          (m) => m.id === parseInt(sourceId.replace('dndnode_', ''))
+        );
+        if (machine) {
+          const queueId = parseInt(targetId.replace('dndnode_', ''));
+          if (!machine.outputQueueIds.includes(queueId)) {
+            machine.outputQueueIds.push(queueId);
+          }
+        }
+      }
+  
+
+      if (sourceNode.type === 'Queue' && targetNode.type === 'Machine') {
+        const machine = machines.find(
+          (m) => m.id === parseInt(targetId.replace('dndnode_', ''))
+        );
+        if (machine) {
+          const queueId = parseInt(sourceId.replace('dndnode_', ''));
+          if (!machine.inputQueueIds.includes(queueId)) {
+            machine.inputQueueIds.push(queueId);
+          }
+        }
+      }
+    });
+  
+    const itemsNumber = 0;
+  
+    return {
+      machines,
+      queues,
+      itemsNumber,
+    };
+  };
+  
+  const factoryStructure = builder(nodes, edges);
+  console.log(factoryStructure);
   
 
 
