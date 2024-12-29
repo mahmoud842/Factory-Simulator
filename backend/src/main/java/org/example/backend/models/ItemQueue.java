@@ -60,7 +60,7 @@ public class ItemQueue {
         notifyAll();
 
         if (isEnd && queue.size() == interruptThreshold) {
-            graph.stopSimulation();
+            graph.endSimulation();
         }
 
         return;

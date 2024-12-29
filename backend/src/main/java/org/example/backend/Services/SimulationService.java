@@ -24,5 +24,13 @@ public class SimulationService {
         if (!graph.isReady()) return false;
         return graph.startSimulation();
     }
+    
+    public boolean pauseSimulation() {
+        return graph.pauseSimulation();
+    }
+
+    public boolean resumeSimulation() {
+        return graph.resumeSimulation();
+    }
 
 }

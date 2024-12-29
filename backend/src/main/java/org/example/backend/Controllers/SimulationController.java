@@ -33,4 +33,18 @@ public class SimulationController {
             return "simulation started";
         return "simulation failed to start";
     }
+
+    @PostMapping("/pauseSimulation")
+    public String pauseSimulation() {
+        if (simulationService.pauseSimulation())
+            return "simulation paused";
+        return "faild to pause simulation";
+    }
+
+    @PostMapping("/resumeSimulation")
+    public String resumeSimulation() {
+        if (simulationService.resumeSimulation())
+            return "simulation resumed";
+        return "faild to resume simulation";
+    }
 }

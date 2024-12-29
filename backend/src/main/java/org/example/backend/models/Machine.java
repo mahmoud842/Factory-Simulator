@@ -17,6 +17,8 @@ public class Machine implements Runnable {
     private Item activeItem;
     private long sleepTime;
     private long id;
+    private final Object pauseLock = new Object();
+    private volatile boolean isPaused = false;
     
     public long getId() {
         return id;
@@ -35,17 +37,21 @@ public class Machine implements Runnable {
         System.out.println("Machine "+ String.valueOf(id)+ " started");
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                synchronized (pauseLock) {
+                    while (isPaused) {
+                        pauseLock.wait();
+                    }
+                }
+
                 activeItem = inputQueues.get(i).pop();
                 if (activeItem != null) {
                     Thread.sleep(sleepTime);
                     outputQueue.push(activeItem);
                     activeItem = null;
                 }
-                // assuming each queue will have items equally probable
                 i = (i + 1) % inputQueues.size();
-            }
-            catch (InterruptedException e) {
-                System.out.print("machine: ");
+            } catch (InterruptedException e) {
+                System.out.print("Machine: ");
                 System.out.print(id);
                 System.out.println(" error");
                 Thread.currentThread().interrupt();
@@ -86,11 +92,20 @@ public class Machine implements Runnable {
     static long getRandomTime() {
         Random random = new Random();
         long randomNumber;
-
-        do {
-            randomNumber = 1000 + random.nextInt(5000 - 1000 + 1);
-        } while (randomNumber % TIME_INTERVALS == 0);
-
+        randomNumber = 1000 + random.nextInt(5000 - 1000 + 1);
         return randomNumber;
+    }
+
+    public void pause() {
+        synchronized (pauseLock) {
+            isPaused = true;
+        }
+    }
+
+    public void resume() {
+        synchronized (pauseLock) {
+            isPaused = false;
+            pauseLock.notifyAll();
+        }
     }
 }

@@ -16,6 +16,7 @@ public class Graph {
     ItemQueue endQueue;
     ItemQueue startQueue;
     boolean running;
+    boolean paused;
 
     public Graph() {
         this.machines = new HashMap<>();
@@ -24,6 +25,7 @@ public class Graph {
         this.ready = false;
         this.threads = new ArrayList<>();
         this.running = false;
+        this.paused = false;
     }
 
     public boolean startSimulation() {
@@ -47,11 +49,28 @@ public class Graph {
         }
 
         startQueue.addItems(totalItems);
-        
         return true;
     }
 
-    public void stopSimulation() {
+    public boolean pauseSimulation() {
+        if (!running || paused) return false;
+        for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
+            machine.getValue().pause();
+        }
+        paused = true;
+        return true;
+    }
+
+    public boolean resumeSimulation() {
+        if (!running || !paused) return false;
+        for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
+            machine.getValue().resume();;
+        }
+        paused = false;
+        return true;
+    }
+
+    public void endSimulation() {
         for (int i = 0; i < threads.size(); i++){
             threads.get(i).interrupt();
         }
