@@ -1,20 +1,22 @@
 package org.example.backend.DTOs;
 
+import java.util.List;
+
 public class QueueDTO {
     long id;
-    long itemsNum;
+    List<ItemDTO> products;
 
-    public QueueDTO(long id, long itemsNum) {
+    public QueueDTO(long id, List<ItemDTO> products) {
         this.id = id;
-        this.itemsNum = itemsNum;
+        this.products = products;
     }
 
-    public long getItemsNum() {
-        return itemsNum;
+    public List<ItemDTO> getProducts() {
+        return products;
     }
 
-    public void setItemsNum(long itemsNum) {
-        this.itemsNum = itemsNum;
+    public void setProducts(List<ItemDTO> products) {
+        this.products = products;
     }
 
     public long getId() {

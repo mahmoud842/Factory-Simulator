@@ -1,26 +1,27 @@
 package org.example.backend.DTOs;
 
 import java.util.List;
+import org.example.backend.DTOs.ItemDTO;
 
 public class MachineDTO {
     long id;
     long outputQueueId;
     List<Long> inputQueueIds;
-    String color;
+    List<ItemDTO> products;
 
-    public MachineDTO(long id, long outputQueueId, List<Long> inputQueueIds, String color) {
+    public MachineDTO(long id, long outputQueueId, List<Long> inputQueueIds, List<ItemDTO> products) {
         this.id = id;
         this.outputQueueId = outputQueueId;
         this.inputQueueIds = inputQueueIds;
-        this.color = color;
-    }
-    
-    public String getColor() {
-        return color;
+        this.products = products;
     }
 
-    public void setColor(String color) {
-        this.color = color;
+    public List<ItemDTO> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<ItemDTO> products) {
+        this.products = products;
     }
 
     public long getId() {

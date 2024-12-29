@@ -1,6 +1,7 @@
 package org.example.backend.models;
 
 import org.example.backend.models.ItemQueue;
+import org.example.backend.DTOs.ItemDTO;
 import org.example.backend.models.Item;
 
 import java.util.ArrayList;
@@ -59,6 +60,15 @@ public class Machine implements Runnable {
         if (activeItem == null)
             return null;
         return activeItem.getColor();
+    }
+
+    public List<ItemDTO> getItemDTO() {
+        if (activeItem == null)
+            return null;
+        ItemDTO itemDTO = new ItemDTO(activeItem);
+        List<ItemDTO> items = new ArrayList<>();
+        items.add(itemDTO);
+        return items;
     }
 
     public List<Long> getInputQueueIds() {

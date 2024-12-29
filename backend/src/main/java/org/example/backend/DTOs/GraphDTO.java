@@ -7,20 +7,20 @@ import java.util.List;
 public class GraphDTO {
     private List<MachineDTO> machines;
     private List<QueueDTO> queues;
-    private long itemsNum;
+    private long itemsNumber;
 
-    public GraphDTO(List<MachineDTO> machines, List<QueueDTO> queues, long itemsNum) {
+    public GraphDTO(List<MachineDTO> machines, List<QueueDTO> queues, long itemsNumber) {
         this.machines = machines;
         this.queues = queues;
-        this.itemsNum = itemsNum;
+        this.itemsNumber = itemsNumber;
     }
 
-    public long getItemsNum() {
-        return itemsNum;
+    public long getItemsNumber() {
+        return itemsNumber;
     }
 
-    public void setItemsNum(long itemsNum) {
-        this.itemsNum = itemsNum;
+    public void setItemsNumber(long itemsNumber) {
+        this.itemsNumber = itemsNumber;
     }
 
     public List<QueueDTO> getQueues() {

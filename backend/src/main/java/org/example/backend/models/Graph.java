@@ -41,7 +41,7 @@ public class Graph {
             System.out.println(entry.getValue());
             threads.add(new Thread(entry.getValue()));
         }
-        
+
         for (int i = 0; i < threads.size(); i++){
             threads.get(i).start();
         }
@@ -128,7 +128,7 @@ public class Graph {
             machines.put(machineId, newMachine);
         }
 
-        totalItems = graphDTO.getItemsNum();
+        totalItems = graphDTO.getItemsNumber();
 
         startQueue = getStartQueue();
         endQueue = getEndQueue();
@@ -149,7 +149,7 @@ public class Graph {
         for (Map.Entry<Long, ItemQueue> entry : queues.entrySet()) {
             QueueDTO newQueue = new QueueDTO(
                 entry.getKey(),
-                entry.getValue().getSize()
+                ItemDTO.toItemDTOList(entry.getValue().getAllItems())
             );
             queuesDTO.add(newQueue);
         }
@@ -160,7 +160,7 @@ public class Graph {
                 entry.getKey(),
                 entry.getValue().getOutputQueueId(),
                 entry.getValue().getInputQueueIds(),
-                entry.getValue().getColor()
+                entry.getValue().getItemDTO()
             );
             machinesDTO.add(newMachine);
         }

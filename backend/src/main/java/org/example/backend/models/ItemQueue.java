@@ -3,7 +3,10 @@ package org.example.backend.models;
 
 import org.example.backend.models.Item;
 import org.example.backend.models.Graph;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class ItemQueue {
@@ -65,6 +68,10 @@ public class ItemQueue {
 
     public long getSize() {
         return queue.size();
+    }
+
+    synchronized public List<Item> getAllItems() {
+        return new ArrayList<>(queue);
     }
 
     public void setAsEndQueue(long threshold, Graph graph) {
