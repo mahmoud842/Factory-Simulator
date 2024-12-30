@@ -13,12 +13,16 @@ const Machine = ({ data, shape = 'circle' }) => {
             borderRadius: 5,
         },
     };
+    
+    const products = data?.products || []; // Default to an empty array if products is null/undefined
+    const backgroundColor = products[0]?.color || '#f5f5f5';
+
 
     return (
         <div
             style={{
                 ...styles[shape],
-                background: '#f5f5f5',
+                background: backgroundColor,
                 border: `2px solid ${data.color || '#333'}`, // Dynamic border color
                 boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                 display: 'flex',

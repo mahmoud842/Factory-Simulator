@@ -13,6 +13,7 @@ function App() {
   const [edges, setEdges] = useState([]);
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useDnD();
+  const intervalId = useRef(null);
 
   const id = useRef(0);
 
@@ -130,55 +131,14 @@ function App() {
     },
     [nodes, type, screenToFlowPosition]
 );
-
-const handleClear = () => {
-  setNodes([]);
-  setEdges([]);
-  id.current = 0;
-};
-const [socket, setSocket] = useState(null);
-
-const handleSimulation = async () => {
-  try {
-    const response = await fetch('http://localhost:8080/simulation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nodes, edges })
-    });
-
-    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-    
-    // Start WebSocket connection
-    const newSocket = new WebSocket('ws://localhost:8080/simulation-updates');
-    
-    newSocket.onmessage = (event) => {
-      const update = JSON.parse(event.data);
-      setNodes(update)
-      console.log('Simulation update:', update);
-    };
-
-    newSocket.onclose = () => {
-      console.log('Simulation completed');
-      setSocket(null);
-    };
-
-    setSocket(newSocket);
-
-    const data = await response.json();
-    console.log('Simulation started:', data);
-
-  } catch (error) {
-    console.error('Error:', error);
-  }
-};
-
-// Cleanup on component unmount
-useEffect(() => {
-  return () => {
-    if (socket) socket.close();
+      
+console.log(nodes)
+  const handleClear = () => {
+    setNodes([]);
+    setEdges([]);
+    id.current = 0;
   };
-}, [socket]);
-
+  
   const onDragStart = (event, nodeType) => {
     
     setType(nodeType);
@@ -186,75 +146,179 @@ useEffect(() => {
   };
 
   const builder = (nodes, edges) => {
-    const machines = [];
-    const queues = [];
-    const queueMap = new Map();
-  
+      const machines = [];
+      const queues = new Set();
 
-    nodes.forEach((node) => {
-      if (node.type === 'Machine') {
-        machines.push({
-          id: parseInt(node.id.replace('dndnode_', '')),
-          outputQueueIds: [],
-          inputQueueIds: [],
-          products: node.data.products || [],
-        });
-      } else if (node.type === 'Queue') {
-        const queueId = parseInt(node.id.replace('dndnode_', ''));
-        queues.push({
+      edges.forEach(edge => {
+          const targetNode = nodes.find(n => n.id === edge.target);
+          const sourceNode = nodes.find(n => n.id === edge.source);
+          
+          if (targetNode?.type === 'Queue') {
+              queues.add(parseInt(edge.target.replace('dndnode_', '')));
+          }
+          if (sourceNode?.type === 'Queue') {
+              queues.add(parseInt(edge.source.replace('dndnode_', '')));
+          }
+      });
+
+      nodes.forEach(node => {
+          if (node.type === 'Machine') {
+              const machineId = parseInt(node.id.replace('dndnode_', ''));
+              
+              const outputEdge = edges.find(edge => edge.source === node.id);
+              const outputQueueId = outputEdge ? parseInt(outputEdge.target.replace('dndnode_', '')) : null;
+              
+              const inputEdges = edges.filter(edge => edge.target === node.id);
+              const inputQueueIds = inputEdges.map(edge => parseInt(edge.source.replace('dndnode_', '')));
+
+              machines.push({
+                  id: machineId,
+                  outputQueueId: outputQueueId,
+                  inputQueueIds: inputQueueIds,
+                  products: node.data.products.map(p => ({ color: p.color || '#e0e0e0' }))
+              });
+          }
+      });
+
+      const queuesArray = Array.from(queues).map(queueId => ({
           id: queueId,
-          products: node.data.products || [],
-        });
-        queueMap.set(node.id, node.data.products || []);
-      }
-    });
-  
+          products: nodes.find(n => n.id === ` dndnode_${queueId}`)?.data.products.map(p => ({ color: p.color || '#e0e0e0' })) || []
+      }));
 
-    edges.forEach((edge) => {
-      const sourceId = edge.source;
-      const targetId = edge.target;
-      const sourceNode = nodes.find((node) => node.id === sourceId);
-      const targetNode = nodes.find((node) => node.id === targetId);
-  
-      if (!sourceNode || !targetNode) return;
-  
-
-      if (sourceNode.type === 'Machine' && targetNode.type === 'Queue') {
-        const machine = machines.find(
-          (m) => m.id === parseInt(sourceId.replace('dndnode_', ''))
-        );
-        if (machine) {
-          const queueId = parseInt(targetId.replace('dndnode_', ''));
-          if (!machine.outputQueueIds.includes(queueId)) {
-            machine.outputQueueIds.push(queueId);
-          }
-        }
-      }
-  
-
-      if (sourceNode.type === 'Queue' && targetNode.type === 'Machine') {
-        const machine = machines.find(
-          (m) => m.id === parseInt(targetId.replace('dndnode_', ''))
-        );
-        if (machine) {
-          const queueId = parseInt(sourceId.replace('dndnode_', ''));
-          if (!machine.inputQueueIds.includes(queueId)) {
-            machine.inputQueueIds.push(queueId);
-          }
-        }
-      }
-    });
-  
-    const itemsNumber = 0;
-  
-    return {
-      machines,
-      queues,
-      itemsNumber,
-    };
+      return {
+          machines: machines,
+          queues: queuesArray,
+          itemsNumber: 10
+      };
   };
+
+
+  const handleSimulation = async () => {
+    // Set Graph
+    try {
+      const response = await fetch('http://localhost:8080/setGraph', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(builder(nodes,edges))
+      });
+      
+      if (response.ok) {
+        // Start Simulation
+        const startResponse = await fetch('http://localhost:8080/startSimulation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (startResponse.ok) {
+          intervalId.current = setInterval(getGraph, 10);
+        }
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+    }
+  };
+
+    const getGraph = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/getState', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(result);
+
+        setNodes(nodes => nodes.map(node => {
+          if (node.type === 'Queue') {
+            const queueData = result.queues.find(
+              q => q.id === parseInt(node.id.replace('dndnode_', ''))
+            );
+            if (queueData) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  products: queueData.products
+                }
+              };
+            }
+          }
+          if (node.type === 'Machine') {
+            const machineData = result.machines.find(
+              m => m.id === parseInt(node.id.replace('dndnode_', ''))
+            );
+            if (machineData) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  products: machineData.products
+                }
+              };
+            }
+          }
+          return node;
+        }));
+
+        if (result.itemsNumber === 0) {
+          clearInterval(intervalId.current);
+        }
+        
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+    }
+  };
+
+  const handlePause = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/pauseSimulation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        clearInterval(intervalId.current);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+    }
+  };
+
+  const handleResume = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/resumeSimulation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        intervalId.current = setInterval(getGraph, 500);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
+      }
+    };
+  }, []);
   
-  const factoryStructure = builder(nodes, edges);
 
   return (
     <div className="app-with-above-buttons">
@@ -295,13 +359,17 @@ useEffect(() => {
             <img src="src/assets/pics/play-button.png" alt="Simulate" />
             Simulate
           </div>
-          <div className="button" onClick={() => console.log('Resume clicked')}>
+          <div className="button" >
             <img src="src/assets/pics/refresh.png" alt="Resume" />
             Replay
           </div>
-          <div className="button" onClick={() => console.log('Stop clicked')}>
+          <div className="button" onClick={handleResume}>
+            <img src="src/assets/pics/play (2).png" alt="Resume" />
+            Resume
+          </div>
+          <div className="button" onClick={handlePause}>
             <img src="src/assets/pics/stop.png" alt="Stop" />
-            Stop
+            Pause
           </div>
           <div className="button" onClick={handleClear}>
             <img src="src/assets/pics/cleaning.png" alt="Clear" />

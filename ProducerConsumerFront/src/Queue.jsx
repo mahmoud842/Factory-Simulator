@@ -2,7 +2,7 @@ import { Handle, Position } from '@xyflow/react';
 
 const Queue = ({ data, id }) => {
     const updateProductColor = (index, newColor) => {
-        const updatedProducts = data.products.map((product, i) => 
+        const updatedProducts = data.products.map((product, i) =>
             i === index ? { ...product, color: newColor } : product
         );
         // Trigger node data update through React Flow
@@ -10,7 +10,7 @@ const Queue = ({ data, id }) => {
             data.onProductUpdate(id, updatedProducts);
         }
     };
-    
+
     return (
         <div style={{
             border: '2px solid #333',
@@ -22,19 +22,28 @@ const Queue = ({ data, id }) => {
             alignItems: 'center',
             position: 'relative',
             width: 90,
-            minHeight: 50,
-            height: Math.max(50, 30 + data.products.length * 20)
+            height: 70,
         }}>
-            <p style={{ margin: '0 0 8px', fontWeight: 'bold', fontSize: 12, color: '#333' }}>
+            <p style={{
+                margin: '0 0 8px',
+                fontWeight: 'bold',
+                fontSize: 12,
+                color: '#333'
+            }}>
                 {data.label || 'Queue'}
             </p>
 
+            {/* Scrollable container for products */}
             <div style={{
-                width: 70,
+                width: '100%',
+                height: 60, // Fixed height for the container
+                overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
-                alignItems: 'center'
+                gap: 2,
+                alignItems: 'center',
+                padding: 5, // Space for the scrollbar to avoid overlap
+                boxSizing: 'content-box',
             }}>
                 {data.products.map((product, index) => (
                     <div key={index} style={{
