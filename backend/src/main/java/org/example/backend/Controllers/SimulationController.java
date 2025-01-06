@@ -5,6 +5,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
 import org.example.backend.Services.SimulationService;
+import org.example.backend.DTOs.StatusDTO;
 
 @Controller
 public class SimulationController {
@@ -21,30 +22,38 @@ public class SimulationController {
     }
 
     @MessageMapping("/action")
-    public void sendMessage(String message) {
+    @SendTo("/topic/status")
+    public StatusDTO sendMessage(String message) {
         switch (message) {
             case "start":
-                simulationService.startSimulation();
-                break;
-            
+                if (simulationService.startSimulation())
+                    return new StatusDTO("start");
+                else return new StatusDTO("failed to start");
+
             case "replay":
-                simulationService.replaySimulation();
-                break;
+                if (simulationService.replaySimulation())
+                    return new StatusDTO("replay");
+                else return new StatusDTO("failed to replay");
 
             case "pause":
-                simulationService.pauseSimulation();
-                break;
+                if (simulationService.pauseSimulation())
+                    return new StatusDTO("pause");
+                else return new StatusDTO("failed to pause");
 
             case "resume":
-                simulationService.resumeSimulation();
-                break;
+                if (simulationService.resumeSimulation())
+                    return new StatusDTO("resume");
+                else return new StatusDTO("failed to resume");
             
             case "terminate":
-                break;
+                if (simulationService.terminateSimulation())
+                    return new StatusDTO("terminate");
+                else return new StatusDTO("failed to terminate");
         
             default:
                 System.out.println("invalid simulation action");
                 break;
         }
+        return new StatusDTO("invalid simulation action");
     }
 }

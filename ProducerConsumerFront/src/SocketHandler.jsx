@@ -24,11 +24,11 @@ class SocketHandler {
                     const jsonData = JSON.parse(message.body);
                     this.updateNodes(jsonData);
                 });
-                this.client.subscribe('topic/status', (message) => {
-                    // const jsonData = JSON.parse(message.body);
-                    // switch(jsonData.action) {
-                    //     case 
-                    // }
+                this.client.subscribe('/topic/status', (message) => {
+                    console.log('hehehehe')
+                    console.log(message)
+                    const jsonData = JSON.parse(message.body);
+                    console.log(jsonData.action)
                 })
                 resolve();
             }, (error) => {
@@ -76,7 +76,7 @@ class SocketHandler {
     }
 
     endSimulation() {
-        
+        this.sendMessage('terminate')
     }
 
     pauseSimulation() {

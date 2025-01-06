@@ -27,4 +27,8 @@ public class Observer {
         Thread.sleep(10);
     }
 
+    synchronized public void sendStatus(Object message) {
+        messagingTemplate.convertAndSend("/topic/status", message);
+    }
+
 }

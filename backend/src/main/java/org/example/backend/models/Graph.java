@@ -89,9 +89,11 @@ public class Graph {
         return true;
     }
 
-    public void endSimulation() {
+    public boolean endSimulation() {
+        if (!running) return false;
         interruptThreads();
         running = false;
+        return true;
     }
 
     public void setupThreads() {
