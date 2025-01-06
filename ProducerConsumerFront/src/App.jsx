@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef ,useEffect} from 'react';
+import { useState, useCallback, useRef ,useEffect,useMemo } from 'react';
 import { ReactFlow, Background, Controls, applyNodeChanges, applyEdgeChanges, addEdge, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useDnD } from './ContextDnD';
@@ -18,6 +18,16 @@ function App() {
   const [type, setType] = useDnD();
   const graphDTORef = useRef(null);
   const socketHandler = useRef(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const startAnimation = () => {
+    setIsAnimating(true);
+  };
+
+  const stopAnimation = () => {
+    setIsAnimating(false);
+    console.log('Animation stopped!');
+  };
 
   const id = useRef(0);
 
@@ -29,9 +39,9 @@ function App() {
     Product,
   };
   
-  const edgeTypes = {
-    Link,
-  };
+  const edgeTypes = useMemo(() => ({
+    Link: (props) => <Link {...props} isAnimating={isAnimating} />
+  }), [isAnimating]);
 
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -371,6 +381,7 @@ const loadFileFromLocal = async (setNodes, setEdges, idRef) => {
           <h2>Process</h2>
           <div className="button" onClick={() => {
             clearProducts()
+            startAnimation()
             graphDTORef.current.build(nodes, edges, itemsNumber)
             socketHandler.current.startSimulation()
           }}>
