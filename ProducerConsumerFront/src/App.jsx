@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef ,useEffect} from 'react';
+import {saveGraph, saveFileToLocal, loadFileFromLocal, loadGraph} from './SaveAndLoad.jsx'
 import { ReactFlow, Background, Controls, applyNodeChanges, applyEdgeChanges, addEdge, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useDnD } from './ContextDnD';
@@ -18,6 +19,10 @@ function App() {
   const [type, setType] = useDnD();
   const graphDTORef = useRef(null);
   const socketHandler = useRef(null);
+  const [simulationStatus, setSimulationStatus] = useState({
+    running: false,
+    pause: false
+  })
 
   const id = useRef(0);
 
@@ -233,97 +238,52 @@ function App() {
     });
   }
 
+  const handleSimulate = () => {
+    setSimulationStatus({
+      running: true,
+      pause: false
+    })
+  }
+  const handleReplay = () => {
+    setSimulationStatus({
+      running: true,
+      pause: false
+    })
+  }
+  const handlePause = () => {
+    setSimulationStatus({
+      running: true,
+      pause: true
+    })
+  }
+  const handleResume = () => {
+    setSimulationStatus({
+      running: true,
+      pause: false
+    })
+  }
+  const handleEnd = () => {
+    setSimulationStatus({
+      running: false,
+      pause: false
+    })
+  }
+
   useEffect(() => {
     graphDTORef.current = new GraphDTO()
-    socketHandler.current = new SocketHandler(updateNodes, graphDTORef.current)
+    socketHandler.current = new SocketHandler(
+      updateNodes,
+      graphDTORef.current,
+      handleSimulate,
+      handleReplay,
+      handlePause,
+      handleResume,
+      handleEnd
+    )
     return () => {
     };
   }, []);
   
-  // Save/load functionality
-const saveGraph = (nodes, edges) => {
-  // Create a deep copy of nodes and clear products
-  const nodesToSave = nodes.map(node => ({
-    ...node,
-    data: {
-      ...node.data,
-      products: [] // Clear products array while keeping other data intact
-    }
-  }));
-
-  return {
-    nodes: nodesToSave,
-    edges: edges,
-    lastNodeId: id.current // Save the current ID counter
-  };
-};
-
-const loadGraph = (graphData, setNodes, setEdges, idRef) => {
-  // Restore nodes with the onProductUpdate function
-  const loadedNodes = graphData.nodes.map(node => ({
-    ...node,
-    data: {
-      ...node.data,
-      onProductUpdate: (nodeId, updatedProducts) => {
-        setNodes(nodes => nodes.map(n => 
-          n.id === nodeId ? { ...n, data: { ...n.data, products: updatedProducts }} : n
-        ));
-      }
-    }
-  }));
-
-  setNodes(loadedNodes);
-  setEdges(graphData.edges);
-  idRef.current = graphData.lastNodeId; // Restore the ID counter
-};
-
-const saveFileToLocal = async (nodes, edges) => {
-  try {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: 'simulation.json',
-      types: [{
-        description: 'JSON Files',
-        accept: {
-          'application/json': ['.json']
-        }
-      }]
-    });
-
-    const graphData = saveGraph(nodes, edges);
-    const content = JSON.stringify(graphData, null, 2);
-    
-    const writable = await handle.createWritable();
-    await writable.write(content);
-    await writable.close();
-
-    console.log('Simulation saved successfully!');
-  } catch (err) {
-    console.error('File save canceled or failed', err);
-  }
-};
-
-const loadFileFromLocal = async (setNodes, setEdges, idRef) => {
-  try {
-    handleClear() 
-    const [handle] = await window.showOpenFilePicker({
-      types: [{
-        description: 'JSON Files',
-        accept: {
-          'application/json': ['.json']
-        }
-      }]
-    });
-
-    const file = await handle.getFile();
-    const content = await file.text();
-    const graphData = JSON.parse(content);
-    
-    loadGraph(graphData, setNodes, setEdges, idRef);
-    console.log('Simulation loaded successfully!');
-  } catch (err) {
-    console.error('File load canceled or failed', err);
-  }
-};
 
   return (
     <div className="app-with-above-buttons">
@@ -369,42 +329,57 @@ const loadFileFromLocal = async (setNodes, setEdges, idRef) => {
             Delete
           </div>
           <h2>Process</h2>
-          <div className="button" onClick={() => {
-            clearProducts()
-            graphDTORef.current.build(nodes, edges, itemsNumber)
-            socketHandler.current.startSimulation()
-          }}>
-            <img src="src/assets/pics/play-button.png" alt="Simulate" />
-            Simulate
+          <div className='status-btns'>
+            {
+              !simulationStatus.running && 
+              <>
+                <div className="status-button" onClick={() => {
+                  clearProducts()
+                  graphDTORef.current.build(nodes, edges, itemsNumber)
+                  socketHandler.current.startSimulation()
+                }}>
+                  <img src="src/assets/pics/play.png" alt="Simulate" />
+                </div>
+                <div className="status-button" onClick={() => {
+                  clearProducts()
+                  socketHandler.current.replaySimulation()
+                }}>
+                  <img src="src/assets/pics/replay.png" alt="Replay" />
+                </div>
+              </>
+            }
+            {
+              simulationStatus.running &&
+              <>
+                {
+                  simulationStatus.pause &&
+                  <div className="status-button" onClick={() => {socketHandler.current.resumeSimulation()}}>
+                    <img src="src/assets/pics/play.png" alt="Resume" />
+                  </div>
+                }
+                {
+                  !simulationStatus.pause &&
+                  <div className="status-button" onClick={() => {socketHandler.current.pauseSimulation()}}>
+                    <img src="src/assets/pics/pause.png" alt="pause" />
+                  </div>
+                }
+                <div className="status-button" onClick={() => {socketHandler.current.endSimulation()}}>
+                  <img src="src/assets/pics/stop.png" alt="end" />
+                </div>
+              </>
+            }
           </div>
-          <div className="button" onClick={() => {
-            clearProducts()
-            socketHandler.current.replaySimulation()
-          }}>
-            <img src="src/assets/pics/refresh.png" alt="Replay" />
-            Replay
+          <div className='status-btns'>
+            <div className="status-button" onClick={handleClear}>
+              <img src="src/assets/pics/clear.png" alt="Clear" />
+            </div>
+            <div className="status-button" onClick={() => saveFileToLocal(nodes, edges, id)}>
+              <img src="src/assets/pics/save.png" alt="Save" />
+            </div>
+            <div className="status-button" onClick={() => loadFileFromLocal(setNodes, setEdges, id, handleClear)}>
+              <img src="src/assets/pics/load.png" alt="Load" />
+            </div>
           </div>
-          <div className="button" onClick={() => {socketHandler.current.resumeSimulation()}}>
-            <img src="src/assets/pics/play (2).png" alt="Resume" />
-            Resume
-          </div>
-          <div className="button" onClick={() => {socketHandler.current.pauseSimulation()}}>
-            <img src="src/assets/pics/stop.png" alt="Stop" />
-            Pause
-          </div>
-          <div className="button" onClick={handleClear}>
-            <img src="src/assets/pics/cleaning.png" alt="Clear" />
-            Clear
-          </div>
-          <div className="button" onClick={() => saveFileToLocal(nodes, edges)}>
-          <img src="src/assets/pics/save.png" alt="Save" />
-          Save
-        </div>
-        <div className="button" onClick={() => loadFileFromLocal(setNodes, setEdges, id)}>
-          <img src="src/assets/pics/load.png" alt="Load" />
-          Load
-        </div>
-
         </div>
 
         <div className="react-flow">

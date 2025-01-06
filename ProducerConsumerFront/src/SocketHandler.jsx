@@ -6,10 +6,23 @@ if (typeof global === "undefined") {
 }
 
 class SocketHandler {
-    constructor(updateNodes, graphDTO) {
+    constructor(
+        updateNodes, 
+        graphDTO, 
+        handleSimulate,
+        handleReplay,
+        handlePause,
+        handleResume,
+        handleEnd
+    ) {
         this.updateNodes = updateNodes
         this.graphDTO = graphDTO
         this.client = null
+        this.handleSimulate = handleSimulate
+        this.handleReplay = handleReplay
+        this.handlePause = handlePause
+        this.handleResume = handleResume
+        this.handleEnd = handleEnd
     }
 
     async initiateWebSocket() {
@@ -25,10 +38,25 @@ class SocketHandler {
                     this.updateNodes(jsonData);
                 });
                 this.client.subscribe('/topic/status', (message) => {
-                    console.log('hehehehe')
-                    console.log(message)
                     const jsonData = JSON.parse(message.body);
-                    console.log(jsonData.action)
+                    switch (jsonData.action) {
+                        case "start":
+                            this.handleSimulate()
+                            break;
+                        case "replay":
+                            this.handleReplay()
+                            break;
+                        case "pause":
+                            this.handlePause()
+                            break;
+                        case "resume":
+                            this.handleResume()
+                            break;
+                        case "terminate":
+                        case "end":
+                            this.handleEnd()
+                            break;
+                    }
                 })
                 resolve();
             }, (error) => {

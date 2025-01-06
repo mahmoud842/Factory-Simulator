@@ -123,4 +123,28 @@ hr{
   background-color: #55b069;
 }
 
+.sidebar .status-btns {
+  display: flex;
+  flex-direction: row;
+  flex-direction: wrap;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 
+.sidebar .status-button {
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #444;
+}
+
+.sidebar .status-button:hover {
+  background-color: #666;
+}
+
+.sidebar .status-button img {
+  width: 24px;
+  height: 24px;
+}
