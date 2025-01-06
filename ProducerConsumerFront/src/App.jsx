@@ -284,6 +284,10 @@ function App() {
     stopAnimation()
   }
 
+  // useEffect(()=>{
+  //   console.log(nodes)
+  // }, [nodes])
+
   useEffect(() => {
     graphDTORef.current = new GraphDTO()
     socketHandler.current = new SocketHandler(

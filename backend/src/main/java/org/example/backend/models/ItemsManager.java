@@ -53,6 +53,7 @@ public class ItemsManager implements Runnable{
 
     public void run() {
         int i = 0;
+        timeSlept = itemsSleepTime.get(i);
         while (i < items.size() && !Thread.currentThread().isInterrupted()) {
             try {
                 synchronized (pauseLock) {
@@ -60,12 +61,12 @@ public class ItemsManager implements Runnable{
                         pauseLock.wait();
                     }
                 }
-                while (timeSlept != itemsSleepTime.get(i) && !isPaused){
+                while (timeSlept < itemsSleepTime.get(i) && !isPaused){
                     long s = Math.min(20, itemsSleepTime.get(i) - timeSlept);
                     Thread.sleep(s);
                     timeSlept += s;
                 }
-                if (itemsSleepTime.get(i) == timeSlept && !isPaused) {
+                if (itemsSleepTime.get(i) >= timeSlept && !isPaused) {
                     observer.sendMessageToTopic(
                         new updateNodeDTO(
                             -1,
@@ -80,7 +81,7 @@ public class ItemsManager implements Runnable{
                 }
             }
             catch (InterruptedException e){
-                System.out.println("ItemManager stopped due to error");
+                System.err.println(e);
                 Thread.currentThread().interrupt();
                 break;
             }
@@ -103,7 +104,7 @@ public class ItemsManager implements Runnable{
     static long getRandomTime() {
         Random random = new Random();
         long randomNumber;
-        randomNumber = 2000 + random.nextInt(5000 - 1000 + 1);
+        randomNumber = 1000 + random.nextInt(2000);
         return randomNumber;
     }
 }

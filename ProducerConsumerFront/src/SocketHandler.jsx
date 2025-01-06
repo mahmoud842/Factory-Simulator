@@ -33,8 +33,8 @@ class SocketHandler {
         return new Promise((resolve, reject) => {
             this.client.connect({}, (frame) => {
                 console.log('Connected: ' + frame);
-                this.client.subscribe('/topic/main', (message) => {
-                    const jsonData = JSON.parse(message.body);
+                this.client.subscribe('/topic/main', async (message) => {
+                    const jsonData = await JSON.parse(message.body);
                     this.updateNodes(jsonData);
                 });
                 this.client.subscribe('/topic/status', (message) => {

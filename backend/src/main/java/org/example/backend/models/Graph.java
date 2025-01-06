@@ -21,6 +21,8 @@ public class Graph {
     boolean ready;
     boolean running;
     boolean paused;
+    boolean replay;
+    SimulationSnapShots simulationSnapShots;
 
     public Graph(Observer observer) {
         this.itemsManager = new ItemsManager(observer);
@@ -32,18 +34,19 @@ public class Graph {
         this.ready = false;
         this.running = false;
         this.paused = false;
+        this.replay = false;
         this.observer = observer;
+        this.simulationSnapShots = new SimulationSnapShots(observer, this);
+        this.observer.addSimulationSnapShot(simulationSnapShots);
     }
 
     public boolean replaySimulation() {
-        if (running || !ready || simulationData == null) return false;
+        if (running || !ready || !simulationSnapShots.isReady()) return false;
         running = true;
         paused = false;
-        itemsManager.setComponents(simulationData.getItems(), simulationData.getItemsSleepTime(), startQueue);
-        setMachinesSleepTime(simulationData.getMachineSleepTime());
-        clearQueues();
-        clearMachines();
-        setupThreads();        
+        replay = true;
+        threads.clear();
+        threads.add(new Thread(simulationSnapShots));
         startThreads();
         return true;
     }
@@ -54,6 +57,8 @@ public class Graph {
         running = true;
         paused = false;
 
+        simulationSnapShots.clear();
+        simulationSnapShots.setStartTime();
         itemsManager.generateComponents(totalItems, startQueue);
         simulationData = new SimulationData(
             getMachinesSleepTime(),
@@ -71,6 +76,11 @@ public class Graph {
 
     public boolean pauseSimulation() {
         if (!running || paused) return false;
+
+        if (replay){
+            simulationSnapShots.pause();
+        }
+
         for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
             machine.getValue().pause();
         }
@@ -81,6 +91,11 @@ public class Graph {
 
     public boolean resumeSimulation() {
         if (!running || !paused) return false;
+
+        if (replay){
+            simulationSnapShots.resume();
+        }
+
         for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
             machine.getValue().resume();;
         }
@@ -93,6 +108,7 @@ public class Graph {
         if (!running) return false;
         interruptThreads();
         running = false;
+        replay = false;
         return true;
     }
 

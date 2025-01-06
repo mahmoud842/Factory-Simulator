@@ -41,7 +41,6 @@ public class Machine implements Runnable {
 
     public void run(){
         int i = 0;
-        // System.out.println("Machine "+ String.valueOf(id)+ " started");
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 synchronized (pauseLock) {
@@ -82,9 +81,7 @@ public class Machine implements Runnable {
                     i = (i + 1) % inputQueues.size();
                 }
             } catch (InterruptedException e) {
-                System.out.print("Machine: ");
-                System.out.print(id);
-                System.out.println(" error");
+                e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
             }
@@ -122,7 +119,7 @@ public class Machine implements Runnable {
     static long getRandomTime() {
         Random random = new Random();
         long randomNumber;
-        randomNumber = 2000 + random.nextInt(5000 - 1000 + 1);
+        randomNumber = 1500 + random.nextInt(2000);
         return randomNumber;
     }
 

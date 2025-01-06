@@ -6,11 +6,11 @@ import { DnDProvider} from './ContextDnD';
 import { ReactFlowProvider } from '@xyflow/react';
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <ReactFlowProvider>
       <DnDProvider>
       <App />
       </DnDProvider>
     </ReactFlowProvider>
-  </StrictMode>
+  // </StrictMode>
 );
