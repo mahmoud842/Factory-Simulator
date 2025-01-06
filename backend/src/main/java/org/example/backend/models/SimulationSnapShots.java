@@ -48,6 +48,7 @@ public class SimulationSnapShots implements Runnable {
     public void run() {
         Long time = 0L;
         int i = 0;
+        isPaused = false;
         while (!Thread.currentThread().isInterrupted() && i < timeGaps.size()) {
             try {
                 synchronized (pauseLock) {
@@ -69,7 +70,7 @@ public class SimulationSnapShots implements Runnable {
                     observer.sendStatus(new StatusDTO("end"));
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                // e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
             }
