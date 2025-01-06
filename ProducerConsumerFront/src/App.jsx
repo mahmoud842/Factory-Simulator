@@ -85,6 +85,62 @@ function App() {
             x: event.clientX,
             y: event.clientY,
         });
+        if (type === 'Delete') {
+          // Check if dropping on a node
+          const nodeToDelete = nodes.find(node => {
+              const nodeWidth = 90; // Approximate node width
+              const nodeHeight = node.type === 'Queue' 
+                  ? node.data.products.length * 20 + 50 
+                  : 50; // Approximate node height
+              
+              return (
+                  position.x >= node.position.x &&
+                  position.x <= node.position.x + nodeWidth &&
+                  position.y >= node.position.y &&
+                  position.y <= node.position.y + nodeHeight
+              );
+          });
+
+          if (nodeToDelete) {
+              // Delete the node and its connected edges
+              setNodes(nodes => nodes.filter(n => n.id !== nodeToDelete.id));
+              setEdges(edges => edges.filter(e => 
+                  e.source !== nodeToDelete.id && e.target !== nodeToDelete.id
+              ));
+              return;
+          }
+
+          // Check if dropping on an edge
+          const edgeToDelete = edges.find(edge => {
+              const sourceNode = nodes.find(n => n.id === edge.source);
+              const targetNode = nodes.find(n => n.id === edge.target);
+              
+              if (!sourceNode || !targetNode) return false;
+
+              // Calculate the line between source and target
+              const startX = sourceNode.position.x + 45; // half of node width
+              const startY = sourceNode.position.y + 25; // half of node height
+              const endX = targetNode.position.x + 45;
+              const endY = targetNode.position.y + 25;
+
+              // Calculate distance from drop point to line
+              const a = endY - startY;
+              const b = startX - endX;
+              const c = startY * (endX - startX) - startX * (endY - startY);
+              const distance = Math.abs(a * position.x + b * position.y + c) / 
+                  Math.sqrt(a * a + b * b);
+
+              // Consider it a hit if within 20 pixels of the line
+              return distance < 20;
+          });
+
+          if (edgeToDelete) {
+              setEdges(edges => edges.filter(e => e.id !== edgeToDelete.id));
+              return;
+          }
+
+          return;
+      }
 
         if (type === 'Product') {
             const queueNode = nodes.find(node => {
@@ -220,6 +276,14 @@ function App() {
             <img src="src/assets/pics/product.png" alt="Queue" />
             product
           </div>
+          <div
+            className="button"
+            onDragStart={(event) => onDragStart(event, 'Delete')}
+            draggable
+          >
+            <img src="src/assets/pics/xIcon.png" alt="Queue" />
+            Delete
+          </div>
           <h2>Process</h2>
           <div className="button" onClick={() => {
             clearProducts()
@@ -248,6 +312,7 @@ function App() {
             <img src="src/assets/pics/cleaning.png" alt="Clear" />
             Clear
           </div>
+
         </div>
 
         <div className="react-flow">
