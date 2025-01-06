@@ -2,12 +2,15 @@ package org.example.backend.models;
 
 import org.example.backend.models.Item;
 import org.example.backend.models.ItemQueue;
+import org.example.backend.DTOs.updateNodeDTO;
+import org.example.backend.observers.Observer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class ItemsManager implements Runnable{
+    private Observer observer;
     private List<Item> items;
     private List<Long> itemsSleepTime;
     private ItemQueue startQueue;
@@ -15,10 +18,11 @@ public class ItemsManager implements Runnable{
     private final Object pauseLock = new Object();
     private volatile boolean isPaused = false;
 
-    public ItemsManager() {
+    public ItemsManager(Observer observer) {
         this.items = new ArrayList<>();
         this.itemsSleepTime = new ArrayList<>();
         this.startQueue = null;
+        this.observer = observer;
     }
 
     public void setComponents(List<Item> items, List<Long> itemsSleepTime, ItemQueue startQueue){
@@ -55,6 +59,14 @@ public class ItemsManager implements Runnable{
                     }
                 }
                 Thread.sleep(itemsSleepTime.get(i));
+                observer.sendMessageToTopic(
+                    new updateNodeDTO(
+                        -1,
+                        startQueue.getId(),
+                        "move",
+                        items.get(i).getDTO()
+                    )
+                );
                 startQueue.push(items.get(i));
                 i++;
             }
@@ -83,7 +95,7 @@ public class ItemsManager implements Runnable{
     static long getRandomTime() {
         Random random = new Random();
         long randomNumber;
-        randomNumber = 1000 + random.nextInt(5000 - 1000 + 1);
+        randomNumber = 2000 + random.nextInt(5000 - 1000 + 1);
         return randomNumber;
     }
 }

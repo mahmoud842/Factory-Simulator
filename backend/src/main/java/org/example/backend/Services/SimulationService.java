@@ -1,5 +1,7 @@
 package org.example.backend.Services;
 
+import org.example.backend.observers.Observer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.example.backend.DTOs.GraphDTO;
 import org.example.backend.models.Graph;
@@ -8,8 +10,10 @@ import org.example.backend.models.Graph;
 public class SimulationService {
 
     Graph graph;
-    public SimulationService() {
-        this.graph = new Graph();
+
+    @Autowired
+    public SimulationService(Observer observer) {
+        this.graph = new Graph(observer);
     }
     
     public boolean setGraph(GraphDTO graphDTO) {

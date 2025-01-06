@@ -6,43 +6,43 @@ public enum Color {
     BLUE {
         @Override
         public String getDescription() {
-            return "blue";
+            return "#0000FF";
         }
     },
     RED {
         @Override
         public String getDescription() {
-            return "red";
+            return "#FF0000";
         }
     },
     YELLOW {
         @Override
         public String getDescription() {
-            return "yellow";
+            return "#FFFF00";
         }
     },
     GREEN {
         @Override
         public String getDescription() {
-            return "green";
+            return "#00FF00";
         }
     },
     BROWN {
         @Override
         public String getDescription() {
-            return "brown";
+            return "#8B4513";
         }
     },
     PINK {
         @Override
         public String getDescription() {
-            return "pink";
+            return "#FF69B4";
         }
     },
     PURPLE {
         @Override
         public String getDescription() {
-            return "purple";
+            return "#800080";
         }
     };
 

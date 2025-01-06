@@ -1,57 +1,50 @@
 package org.example.backend.Controllers;
 
-import java.util.List;
-
-import org.example.backend.DTOs.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.stereotype.Controller;
 import org.example.backend.Services.SimulationService;
 
-@RestController
-@CrossOrigin(origins = {"*", "null"})
+@Controller
 public class SimulationController {
 
+    private final SimpMessageSendingOperations messagingTemplate;
     SimulationService simulationService;
 
-    SimulationController(SimulationService simulationService) {
+    public SimulationController(
+            SimpMessageSendingOperations messagingTemplate,
+            SimulationService simulationService
+        ) {
+        this.messagingTemplate = messagingTemplate;
         this.simulationService = simulationService;
     }
 
-    @PostMapping("/setGraph")
-    public String handleGraphPost(@RequestBody GraphDTO graphDTO) {
-        this.simulationService.setGraph(graphDTO);
-        return "Graph received successfully!";
-    }
+    @MessageMapping("/action")
+    public void sendMessage(String message) {
+        switch (message) {
+            case "start":
+                simulationService.startSimulation();
+                break;
+            
+            case "replay":
+                simulationService.replaySimulation();
+                break;
 
-    @GetMapping("/getState")
-    public GraphDTO handleGetState() {
-        return simulationService.getGraphState();
-    }
+            case "pause":
+                simulationService.pauseSimulation();
+                break;
 
-    @PostMapping("/startSimulation")
-    public String startSimulation() {
-        if (simulationService.startSimulation())
-            return "simulation started";
-        return "simulation failed to start";
-    }
-
-    @PostMapping("/pauseSimulation")
-    public String pauseSimulation() {
-        if (simulationService.pauseSimulation())
-            return "simulation paused";
-        return "failed to pause simulation";
-    }
-
-    @PostMapping("/resumeSimulation")
-    public String resumeSimulation() {
-        if (simulationService.resumeSimulation())
-            return "simulation resumed";
-        return "failed to resume simulation";
-    }
-
-    @PostMapping("/replaySimulation")
-    public String replaySimulation() {
-        if (simulationService.replaySimulation())
-            return "simulation replay started";
-        return "failed to replay simulation";
+            case "resume":
+                simulationService.resumeSimulation();
+                break;
+            
+            case "terminate":
+                break;
+        
+            default:
+                System.out.println("invalid simulation action");
+                break;
+        }
     }
 }

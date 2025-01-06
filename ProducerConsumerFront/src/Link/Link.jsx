@@ -1,11 +1,7 @@
-const Link = ({ id, sourceX, sourceY, targetX, targetY, style }) => {
-    // Define the edge style explicitly for a thin, solid straight line
-    const edgeStyle = {
-        stroke: 'green', // Set the color of the line
-        strokeWidth: 2, // Set the line thickness
-        fill: 'none', // Ensure no fill color for the path
-    };
+import React from 'react';
+import './Link.css'; // Import the CSS file for styles
 
+const Link = ({ id, sourceX, sourceY, targetX, targetY }) => {
     // Straight line path
     const path = `M${sourceX},${sourceY} L${targetX},${targetY}`; // Straight line from source to target
 
@@ -20,13 +16,13 @@ const Link = ({ id, sourceX, sourceY, targetX, targetY, style }) => {
                     refY="3.5"
                     orient="auto"
                 >
-                    <polygon points="0 0, 10 3.5, 0 7" fill="green" />
+                    <polygon points="0 0, 10 3.5, 0 7" className="arrowhead" />
                 </marker>
             </defs>
             <path
                 id={id}
                 d={path}
-                style={edgeStyle}
+                className="link-path"
                 markerEnd="url(#arrowhead)" // Use the arrowhead marker
             />
         </>

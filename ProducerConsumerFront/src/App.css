@@ -3,11 +3,21 @@
 }
 
 .app-with-above-buttons .number-button{
+  display: flex;
+  flex-direction: row;
   position: fixed;
   top: 2px;
   left:45%;
   z-index: 1000;
   display:flex;
+  background-color: #8c8c8c;
+  border-radius: 50px;
+  align-items: center;
+}
+.app-with-above-buttons .number-button p {
+  margin: 0 !important;
+  font-size: 28px;
+  color: white;
 }
 
 .app-with-above-buttons .number-button button{
@@ -17,6 +27,9 @@
   height:40px;
   border:none;
   background-color: #8c8c8c;
+  color: white;
+  font-size: 24px;
+  font-weight: 500;
 }
 
 .app-with-above-buttons .number-button button:hover{

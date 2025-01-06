@@ -1,0 +1,9 @@
+.link-path {
+    stroke: green; /* Set the color of the line */
+    stroke-width: 2; /* Set the line thickness */
+    fill: none; /* Ensure no fill color for the path */
+}
+
+.arrowhead {
+    fill: green; /* Set the color of the arrowhead */
+}

@@ -1,6 +1,7 @@
 package org.example.backend.models;
 
 import org.example.backend.DTOs.*;
+import org.example.backend.observers.Observer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Graph {
+    Observer observer;
     ItemsManager itemsManager;
     SimulationData simulationData;
     Map<Long, Machine> machines;
@@ -20,8 +22,8 @@ public class Graph {
     boolean running;
     boolean paused;
 
-    public Graph() {
-        this.itemsManager = new ItemsManager();
+    public Graph(Observer observer) {
+        this.itemsManager = new ItemsManager(observer);
         this.simulationData = null;
         this.machines = new HashMap<>();
         this.queues = new HashMap<>();
@@ -30,6 +32,7 @@ public class Graph {
         this.ready = false;
         this.running = false;
         this.paused = false;
+        this.observer = observer;
     }
 
     public boolean replaySimulation() {
@@ -40,7 +43,7 @@ public class Graph {
         setMachinesSleepTime(simulationData.getMachineSleepTime());
         clearQueues();
         clearMachines();
-        setUpThreads();        
+        setupThreads();        
         startThreads();
         return true;
     }
@@ -60,7 +63,7 @@ public class Graph {
         
         clearQueues();
         clearMachines();
-        setUpThreads();        
+        setupThreads();
         startThreads();
 
         return true;
@@ -91,7 +94,7 @@ public class Graph {
         running = false;
     }
 
-    public void setUpThreads() {
+    public void setupThreads() {
         threads.clear();
         for (Map.Entry<Long, Machine> entry : machines.entrySet()) {
             threads.add(new Thread(entry.getValue()));
@@ -100,7 +103,8 @@ public class Graph {
     }
 
     public void startThreads() {
-        for (int i = 0; i < threads.size(); i++){
+        threads.get(threads.size()-1).start();
+        for (int i = 0; i < threads.size()-1; i++){
             threads.get(i).start();
         }
     }
@@ -180,7 +184,7 @@ public class Graph {
         List<QueueDTO> queueDTOs = graphDTO.getQueues();
         for (int i = 0; i < queueDTOs.size(); i++){
             long queueId = queueDTOs.get(i).getId();
-            queues.put(queueId, new ItemQueue(queueId));
+            queues.put(queueId, new ItemQueue(queueId, observer));
         }
         
         List<MachineDTO> machineDTOs = graphDTO.getMachines();
@@ -191,7 +195,12 @@ public class Graph {
             for (int j = 0; j < machineDTOs.get(i).getInputQueueIds().size(); j++){
                 inputQueues.add(queues.get(machineDTOs.get(i).getInputQueueIds().get(j)));
             }
-            Machine newMachine = new Machine(inputQueues, queues.get(machineDTOs.get(i).getOutputQueueId()), machineId);
+            Machine newMachine = new Machine(
+                inputQueues,
+                queues.get(machineDTOs.get(i).getOutputQueueId()),
+                machineId,
+                observer
+            );
             machines.put(machineId, newMachine);
         }
 

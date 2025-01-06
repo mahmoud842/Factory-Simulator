@@ -3,6 +3,7 @@ package org.example.backend.models;
 
 import org.example.backend.models.Item;
 import org.example.backend.models.Graph;
+import org.example.backend.observers.Observer;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Queue;
 
 public class ItemQueue {
+    private Observer observer;
     
     private Queue<Item> queue = new LinkedList<>();
     private long pendingPush;
@@ -24,12 +26,13 @@ public class ItemQueue {
         return id;
     }
 
-    public ItemQueue(long id) {
+    public ItemQueue(long id, Observer observer) {
         this.pendingPush = 0;
         this.activePush = 0;
         this.id = id;
         this.isEnd = false;
         this.interruptThreshold = 0;
+        this.observer = observer;
     }
     
     synchronized public Item pop() {
@@ -39,7 +42,7 @@ public class ItemQueue {
         return queue.poll();
     }
 
-    synchronized public void push(Item newItem) {
+    synchronized public void push(Item newItem) throws InterruptedException {
         pendingPush++;
         while (activePush > 0) {
             try {

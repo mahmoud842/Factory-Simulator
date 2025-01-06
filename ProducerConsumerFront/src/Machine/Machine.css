@@ -1,0 +1,29 @@
+.machine {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    border: 2px solid;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+.machine-label {
+    margin: 0;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+}
+
+.machine-handle {
+    background: #555;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    position: absolute;
+}

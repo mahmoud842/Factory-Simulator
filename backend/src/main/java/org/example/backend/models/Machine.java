@@ -3,6 +3,8 @@ package org.example.backend.models;
 import org.example.backend.models.ItemQueue;
 import org.example.backend.DTOs.ItemDTO;
 import org.example.backend.models.Item;
+import org.example.backend.DTOs.updateNodeDTO;
+import org.example.backend.observers.Observer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,7 @@ public class Machine implements Runnable {
 
     static final long TIME_INTERVALS = 100;
 
+    private Observer observer;
     private List<ItemQueue> inputQueues;
     private ItemQueue outputQueue;
     private Item activeItem;
@@ -24,17 +27,18 @@ public class Machine implements Runnable {
         return id;
     }
 
-    public Machine(List<ItemQueue> inputQueues, ItemQueue outputQueue, long id) {
+    public Machine(List<ItemQueue> inputQueues, ItemQueue outputQueue, long id, Observer observer) {
         this.inputQueues = inputQueues;
         this.outputQueue = outputQueue;
         this.activeItem = null;
         this.sleepTime = getRandomTime();
         this.id = id;
+        this.observer = observer;
     }
 
     public void run(){
         int i = 0;
-        System.out.println("Machine "+ String.valueOf(id)+ " started");
+        // System.out.println("Machine "+ String.valueOf(id)+ " started");
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 synchronized (pauseLock) {
@@ -45,7 +49,23 @@ public class Machine implements Runnable {
 
                 activeItem = inputQueues.get(i).pop();
                 if (activeItem != null) {
+                    observer.sendMessageToTopic(
+                        new updateNodeDTO(
+                            inputQueues.get(i).getId(),
+                            id,
+                            "move",
+                            activeItem.getDTO()
+                        )
+                    );
                     Thread.sleep(sleepTime);
+                    observer.sendMessageToTopic(
+                        new updateNodeDTO(
+                            id,
+                            outputQueue.getId(),
+                            "move",
+                            activeItem.getDTO()
+                        )
+                    );
                     outputQueue.push(activeItem);
                     activeItem = null;
                 }
@@ -58,8 +78,7 @@ public class Machine implements Runnable {
                 break;
             }
         }
-        System.out.println("Machine "+ String.valueOf(id)+ " stoped");
-
+        // System.out.println("Machine "+ String.valueOf(id)+ " stoped");
     }
 
     public String getColor() {
@@ -92,7 +111,7 @@ public class Machine implements Runnable {
     static long getRandomTime() {
         Random random = new Random();
         long randomNumber;
-        randomNumber = 1000 + random.nextInt(5000 - 1000 + 1);
+        randomNumber = 2000 + random.nextInt(5000 - 1000 + 1);
         return randomNumber;
     }
 
