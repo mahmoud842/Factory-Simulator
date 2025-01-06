@@ -53,7 +53,7 @@ public class ItemsManager implements Runnable{
 
     public void run() {
         int i = 0;
-        timeSlept = itemsSleepTime.get(i);
+        timeSlept = itemsSleepTime.get(i)-50;
         isPaused = false;
         while (i < items.size() && !Thread.currentThread().isInterrupted()) {
             try {

@@ -10,22 +10,23 @@ import java.util.HashMap;
 
 public class Graph {
     Observer observer;
-    ItemsManager itemsManager;
+    List<ItemsManager> itemsManagers;
     SimulationData simulationData;
     Map<Long, Machine> machines;
     Map<Long, ItemQueue> queues;
     List<Thread> threads;
-    ItemQueue endQueue;
-    ItemQueue startQueue;
+    List<ItemQueue> endQueues;
+    List<ItemQueue> startQueues;
     long totalItems;
     boolean ready;
     boolean running;
     boolean paused;
     boolean replay;
     SimulationSnapShots simulationSnapShots;
+    long itemsDone = 0;
 
     public Graph(Observer observer) {
-        this.itemsManager = new ItemsManager(observer);
+        this.itemsManagers = new ArrayList<>();
         this.simulationData = null;
         this.machines = new HashMap<>();
         this.queues = new HashMap<>();
@@ -57,18 +58,13 @@ public class Graph {
         running = true;
         paused = false;
 
+        itemsDone = 0;
         simulationSnapShots.clear();
-        simulationSnapShots.setStartTime();
-        itemsManager.generateComponents(totalItems, startQueue);
-        simulationData = new SimulationData(
-            getMachinesSleepTime(),
-            itemsManager.getItems(),
-            itemsManager.getItemsSleepTime()
-        );
-        
+        intializeItemsManagers();        
         clearQueues();
         clearMachines();
         setupThreads();
+        simulationSnapShots.setStartTime();
         startThreads();
 
         return true;
@@ -81,10 +77,12 @@ public class Graph {
             simulationSnapShots.pause();
         }
 
+        for (int i = 0; i < itemsManagers.size(); i++){
+            itemsManagers.get(i).pause();
+        }
         for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
             machine.getValue().pause();
         }
-        itemsManager.pause();
         paused = true;
         return true;
     }
@@ -96,10 +94,13 @@ public class Graph {
             simulationSnapShots.resume();
         }
 
+        for (int i = 0; i < itemsManagers.size(); i++){
+            itemsManagers.get(i).resume();
+        }
+
         for (Map.Entry<Long, Machine> machine : machines.entrySet()) {
             machine.getValue().resume();;
         }
-        itemsManager.resume();
         paused = false;
         return true;
     }
@@ -114,15 +115,16 @@ public class Graph {
 
     public void setupThreads() {
         threads.clear();
+        for (int i = 0; i < itemsManagers.size(); i++){
+            threads.add(new Thread(itemsManagers.get(i)));
+        }
         for (Map.Entry<Long, Machine> entry : machines.entrySet()) {
             threads.add(new Thread(entry.getValue()));
         }
-        threads.add(new Thread(itemsManager));
     }
 
     public void startThreads() {
-        threads.get(threads.size()-1).start();
-        for (int i = 0; i < threads.size()-1; i++){
+        for (int i = 0; i < threads.size(); i++){
             threads.get(i).start();
         }
     }
@@ -145,6 +147,22 @@ public class Graph {
         }
     }
 
+    public void intializeItemsManagers() {
+        itemsManagers.clear();
+        for (int i = 0; i < startQueues.size(); i++){
+            itemsManagers.add(new ItemsManager(observer));
+            itemsManagers.get(i).generateComponents(totalItems, startQueues.get(i));
+        }
+    }
+
+    public synchronized void increment() {
+        itemsDone++;
+        if (itemsDone == totalItems * itemsManagers.size()){
+            endSimulation();
+            observer.sendStatus(new StatusDTO("end"));
+        }
+    }
+
     public boolean isReady() {
         return ready;
     }
@@ -153,7 +171,8 @@ public class Graph {
         return true;
     }
 
-    private ItemQueue getStartQueue() {
+    private List<ItemQueue> getStartQueues() {
+        List<ItemQueue> sq = new ArrayList<>();
         for (Map.Entry<Long, ItemQueue> q : queues.entrySet()) {
             boolean flag = true;
             for (Map.Entry<Long, Machine> m : machines.entrySet()) {
@@ -163,12 +182,13 @@ public class Graph {
                 }
             }
             if (flag)
-                return q.getValue();
+                sq.add(q.getValue());
         }
-        return null;
+        return sq;
     }
 
-    private ItemQueue getEndQueue() {
+    private List<ItemQueue> getEndQueues() {
+        List<ItemQueue> eq = new ArrayList<>();
         for (Map.Entry<Long, ItemQueue> q : queues.entrySet()) {
             boolean flag = true;
             for (Map.Entry<Long, Machine> m : machines.entrySet()) {
@@ -183,9 +203,9 @@ public class Graph {
                     break;
             }
             if (flag)
-                return q.getValue();
+                eq.add(q.getValue());
         }
-        return null;
+        return eq;
     }
 
     public boolean build(GraphDTO graphDTO) {
@@ -208,11 +228,16 @@ public class Graph {
         List<MachineDTO> machineDTOs = graphDTO.getMachines();
         for (int i = 0; i < machineDTOs.size(); i++){
             long machineId = machineDTOs.get(i).getId();
-            // add error handling to check if queue doesn't exist
             List<ItemQueue> inputQueues = new ArrayList<>();
             for (int j = 0; j < machineDTOs.get(i).getInputQueueIds().size(); j++){
                 inputQueues.add(queues.get(machineDTOs.get(i).getInputQueueIds().get(j)));
             }
+            
+            // check if queue doesn't exist
+            ItemQueue outQueue = queues.get(machineDTOs.get(i).getOutputQueueId());
+            if (outQueue == null || inputQueues.size() == 0)
+                return false;
+            
             Machine newMachine = new Machine(
                 inputQueues,
                 queues.get(machineDTOs.get(i).getOutputQueueId()),
@@ -223,11 +248,17 @@ public class Graph {
         }
 
         totalItems = graphDTO.getItemsNumber();
+        
+        startQueues = getStartQueues();
+        endQueues = getEndQueues();
+        if (startQueues.size() == 0 || endQueues.size() == 0){
+            return false;
+        }
 
-        startQueue = getStartQueue();
-        endQueue = getEndQueue();
-        endQueue.setAsEndQueue(totalItems, this);
+        for (int i = 0; i < endQueues.size(); i++)
+            endQueues.get(i).setAsEndQueue(totalItems, this);
 
+        simulationSnapShots.clear();
         simulationData = null;
         paused = false;
         ready = true;

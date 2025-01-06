@@ -6,8 +6,6 @@ class GraphDTO {
     }
 
     build(nodes, edges, itemsNumber) {
-        console.log(nodes)
-        console.log(edges)
         const machines = [];
         const queues = new Set();
 

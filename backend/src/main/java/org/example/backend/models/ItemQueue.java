@@ -2,7 +2,6 @@ package org.example.backend.models;
 
 import org.example.backend.models.Item;
 import org.example.backend.models.Graph;
-import org.example.backend.DTOs.StatusDTO;
 import org.example.backend.observers.Observer;
 
 import java.util.ArrayList;
@@ -62,9 +61,8 @@ public class ItemQueue {
         activePush--;
         notifyAll();
 
-        if (isEnd && queue.size() == interruptThreshold) {
-            graph.endSimulation();
-            observer.sendStatus(new StatusDTO("end"));
+        if (isEnd) {
+            graph.increment();
         }
 
         return;

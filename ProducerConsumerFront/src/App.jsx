@@ -90,17 +90,20 @@ function App() {
   }, [nodes, edges]);
 
   const onDragStart = (event, nodeType) => {
+    if (simulationStatus.running) return;
     setType(nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
   
   const onDragOver = useCallback((event) => {
+    if (simulationStatus.running) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
   const onDrop = useCallback(
     (event) => {
+        if (simulationStatus.running) return;
         event.preventDefault();
         if (!type) return;
 
@@ -219,6 +222,7 @@ function App() {
   );
       
   const handleClear = () => {
+    if (simulationStatus.running) return;
     setNodes([]);
     setEdges([]);
     id.current = 0;
@@ -229,7 +233,6 @@ function App() {
   };
 
   const updateNodes = throttle((message) => {
-    console.log(message)
     setNodes((n) => {
       const newNodes = n.map((node) => {
         if (message.fromId === parseInt(node.id.replace('dndnode_', ''))) {
@@ -249,6 +252,7 @@ function App() {
   }, 20)
 
   const clearProducts = () => {
+    if (simulationStatus.running) return;
     setNodes((n) => {
       const newNodes = n.map((node) => {
         const updatedNode = { ...node }
@@ -294,7 +298,7 @@ function App() {
     })
     stopAnimation()
   }
-  const handleMassage = (themessage) => {
+  const handleMessage = (themessage) => {
     setSnackbar({
       open: true,
       message: themessage,
@@ -316,7 +320,7 @@ function App() {
       handlePause,
       handleResume,
       handleEnd,
-      handleMassage
+      handleMessage
     )
     return () => {
     };
@@ -410,6 +414,9 @@ function App() {
           <div className='status-btns'>
             <div className="status-button" onClick={handleClear}>
               <img src="src/assets/pics/clear.png" alt="Clear" />
+            </div>
+            <div className="status-button" onClick={clearProducts}>
+              <img src="src/assets/pics/clear-products.png" alt="Clear-products" />
             </div>
             <div className="status-button" onClick={() => saveFileToLocal(nodes, edges, id)}>
               <img src="src/assets/pics/save.png" alt="Save" />

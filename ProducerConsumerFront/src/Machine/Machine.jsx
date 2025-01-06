@@ -3,11 +3,10 @@ import { Handle, Position } from '@xyflow/react';
 import { FaCog } from 'react-icons/fa'; // Gear icon from react-icons
 import './Machine.css'; // Import the CSS file
 
-const Machine = ({ data}) => {
+const Machine = ({data}) => {
     const [isRolling, setIsRolling] = useState(true);
 
     useEffect(() => {
-        console.log(data.products.length > 0)
         setIsRolling(data.products.length > 0); 
     }, [data.products]);
 

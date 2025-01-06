@@ -18,7 +18,8 @@ public class SetupSimulationController {
 
     @PostMapping("/setGraph")
     public String handleGraphPost(@RequestBody GraphDTO graphDTO) {
-        this.simulationService.setGraph(graphDTO);
-        return "Graph received successfully!";
+        if (this.simulationService.setGraph(graphDTO))
+            return "Graph received successfully!";
+        return "Invalid Graph";
     }
 }

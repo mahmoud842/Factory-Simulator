@@ -14,7 +14,7 @@ class SocketHandler {
         handlePause,
         handleResume,
         handleEnd,
-        handleMassage
+        handleMessage
     ) {
         this.updateNodes = updateNodes
         this.graphDTO = graphDTO
@@ -24,7 +24,7 @@ class SocketHandler {
         this.handlePause = handlePause
         this.handleResume = handleResume
         this.handleEnd = handleEnd
-        this.handleMassage = handleMassage
+        this.handleMessage = handleMessage
     }
 
     async initiateWebSocket() {
@@ -41,28 +41,31 @@ class SocketHandler {
                 });
                 this.client.subscribe('/topic/status', (message) => {
                     const jsonData = JSON.parse(message.body);
+                    console.log(jsonData.action)
                     switch (jsonData.action) {
                         case "start":
                             this.handleSimulate()
-                            this.handleMassage("Simulation started")
+                            this.handleMessage("Simulation started")
                             break;
                         case "replay":
                             this.handleReplay()
-                            this.handleMassage("Replaying simulation")
+                            this.handleMessage("Replaying simulation")
                             break;
                         case "pause":
                             this.handlePause()
-                            this.handleMassage("Simulation paused")
+                            this.handleMessage("Simulation paused")
                             break;
                         case "resume":
                             this.handleResume()
-                            this.handleMassage("Simulation resumed")
+                            this.handleMessage("Simulation resumed")
                             break;
                         case "terminate":
                         case "end":
                             this.handleEnd()
-                            this.handleMassage("Simulation ended")
+                            this.handleMessage("Simulation ended")
                             break;
+                        default:
+                            this.handleMessage(jsonData.action)
                     }
                 })
                 resolve();
@@ -83,6 +86,7 @@ class SocketHandler {
     }
 
     async setGraph() {
+        console.log(this.graphDTO)
         try {
             const response = await fetch('http://localhost:8080/setGraph', {
                 method: 'POST',
@@ -95,16 +99,22 @@ class SocketHandler {
             if (response.ok) {
                 const result = await response.text();
                 console.log(result);
+                if (result == "Invalid Graph"){
+                    this.handleMessage("Invalid Graph");
+                    return false;
+                }
+                return true;
             }
         } 
         catch (error) {
             console.error('Network error:', error);
         }
+        return false;
     }
 
     async startSimulation() {
-        console.log(this.nodes)
-        await this.setGraph()
+        if (await this.setGraph() == false)
+            return;
         if (this.client == null)
             await this.initiateWebSocket()
         this.sendMessage('start')
