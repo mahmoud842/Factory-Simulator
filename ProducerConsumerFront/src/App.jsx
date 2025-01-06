@@ -2,6 +2,7 @@ import { useState, useCallback, useRef ,useEffect,useMemo } from 'react';
 import { saveGraph, saveFileToLocal, loadFileFromLocal, loadGraph } from './SaveAndLoad.jsx'
 import { ReactFlow, Background, Controls, applyNodeChanges, applyEdgeChanges, addEdge, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { Snackbar, Alert } from '@mui/material';
 import { useDnD } from './ContextDnD';
 import Machine from './Machine/Machine.jsx';
 import Queue from './Queue/Queue.jsx';
@@ -24,6 +25,12 @@ function App() {
     running: false,
     pause: false
   })
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info' // can be 'error', 'warning', 'info', or 'success'
+  });
+
 
   const startAnimation = () => {
     setIsAnimating(true);
@@ -125,7 +132,6 @@ function App() {
               return;
           }
 
-          // Check if dropping on an edge
           const edgeToDelete = edges.find(edge => {
               const sourceNode = nodes.find(n => n.id === edge.source);
               const targetNode = nodes.find(n => n.id === edge.target);
@@ -216,6 +222,10 @@ function App() {
     setEdges([]);
     id.current = 0;
   };
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
   const updateNodes = (message) => {
     console.log(message)
@@ -283,6 +293,13 @@ function App() {
     })
     stopAnimation()
   }
+  const handleMassage = (themessage) => {
+    setSnackbar({
+      open: true,
+      message: themessage,
+      severity: 'info'
+    });
+  }
 
   // useEffect(()=>{
   //   console.log(nodes)
@@ -297,7 +314,8 @@ function App() {
       handleReplay,
       handlePause,
       handleResume,
-      handleEnd
+      handleEnd,
+      handleMassage
     )
     return () => {
     };
@@ -307,7 +325,7 @@ function App() {
   return (
     <div className="app-with-above-buttons">
       <div className="number-button">
-        <button onClick={() => {setItemsNumber((i) => {return i-1})}}>-</button>
+        <button onClick={() => {setItemsNumber((i) => {return i == 1 ? i : i-1})}}>-</button>
         <p>{itemsNumber}</p>
         <button onClick={() => {setItemsNumber((i) => {return i+1})}}>+</button>
       </div>
@@ -320,7 +338,7 @@ function App() {
             onDragStart={(event) => onDragStart(event, 'Machine')}
             draggable
           >
-            <img src="src/assets/pics/engineering.png" alt="Machine" />
+            <img src="src/assets/pics/engineering.png" alt="Machine" style={{marginRight:'15px'}} />
             Machine
           </div>
           <div
@@ -328,7 +346,7 @@ function App() {
             onDragStart={(event) => onDragStart(event, 'Queue')}
             draggable
           >
-            <img src="src/assets/pics/queue (1).png" alt="Queue" />
+            <img src="src/assets/pics/queue (1).png" alt="Queue" style={{marginRight:'15px'}}/>
             Queue
           </div>
           <div
@@ -336,7 +354,7 @@ function App() {
             onDragStart={(event) => onDragStart(event, 'Product')}
             draggable
           >
-            <img src="src/assets/pics/product.png" alt="Queue" />
+            <img src="src/assets/pics/product.png" alt="Queue"  style={{marginRight:'15px'}}/>
             product
           </div>
           <div
@@ -344,7 +362,7 @@ function App() {
             onDragStart={(event) => onDragStart(event, 'Delete')}
             draggable
           >
-            <img src="src/assets/pics/xIcon.png" alt="Queue" />
+            <img src="src/assets/pics/xIcon.png" alt="Queue"  style={{marginRight:'15px'}}/>
             Delete
           </div>
           <h2>Process</h2>
@@ -420,7 +438,22 @@ function App() {
           </ReactFlow>
         </div>
       </div>
-    </div>
+
+        <Snackbar 
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleSnackbarClose} 
+            severity={snackbar.severity}
+            variant="filled"
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </div>
   );
 }
 
