@@ -1,10 +1,11 @@
 import React from 'react';
-import './Link.css'; // Import the CSS file for styles
+import './Link.css';
+import { useState } from 'react';
 
-const Link = ({ id, sourceX, sourceY, targetX, targetY }) => {
-    // Straight line path
-    const path = `M${sourceX},${sourceY} L${targetX},${targetY}`; // Straight line from source to target
-
+const Link = ({ id, sourceX, sourceY, targetX, targetY, isAnimating, onStop }) => {
+    const [dashOffset, setDashOffset] = useState(0);
+    const path = `M${sourceX},${sourceY} L${targetX},${targetY}`;
+    
     return (
         <>
             <defs>
@@ -22,8 +23,8 @@ const Link = ({ id, sourceX, sourceY, targetX, targetY }) => {
             <path
                 id={id}
                 d={path}
-                className="link-path"
-                markerEnd="url(#arrowhead)" // Use the arrowhead marker
+                className={`link-path ${isAnimating ? 'animating' : ''}`}
+                markerEnd="url(#arrowhead)"
             />
         </>
     );

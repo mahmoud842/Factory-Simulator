@@ -1,9 +1,20 @@
 .link-path {
-    stroke: green; /* Set the color of the line */
-    stroke-width: 2; /* Set the line thickness */
-    fill: none; /* Ensure no fill color for the path */
+    stroke: green;
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 5, 5;
+}
+
+.link-path.animating {
+    animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -10;
+    }
 }
 
 .arrowhead {
-    fill: green; /* Set the color of the arrowhead */
+    fill: green;
 }
