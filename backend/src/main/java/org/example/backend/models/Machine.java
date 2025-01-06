@@ -19,9 +19,10 @@ public class Machine implements Runnable {
     private ItemQueue outputQueue;
     private Item activeItem;
     private long sleepTime;
+    private long timeSlept;
     private long id;
     private final Object pauseLock = new Object();
-    private volatile boolean isPaused = false;
+    private volatile boolean isPaused;
     
     public long getId() {
         return id;
@@ -34,6 +35,8 @@ public class Machine implements Runnable {
         this.sleepTime = getRandomTime();
         this.id = id;
         this.observer = observer;
+        this.timeSlept = this.sleepTime;
+        this.isPaused = false;
     }
 
     public void run(){
@@ -46,16 +49,12 @@ public class Machine implements Runnable {
                         pauseLock.wait();
                     }
                 }
-                if (activeItem != null) {
-                    observer.sendMessageToTopic(
-                        new updateNodeDTO(
-                            inputQueues.get(i).getId(),
-                            id,
-                            "move",
-                            activeItem.getDTO()
-                        )
-                    );
-                    Thread.sleep(sleepTime);
+                while (timeSlept < sleepTime && !isPaused){
+                    long s = Math.min(20, sleepTime - timeSlept);
+                    Thread.sleep(s);
+                    timeSlept += s;
+                }
+                if (activeItem != null && !isPaused) {
                     observer.sendMessageToTopic(
                         new updateNodeDTO(
                             id,
@@ -67,8 +66,19 @@ public class Machine implements Runnable {
                     outputQueue.push(activeItem);
                     activeItem = null;
                 }
-                else {
+                else if (timeSlept >= sleepTime && !isPaused){
                     activeItem = inputQueues.get(i).pop();
+                    if (activeItem != null){
+                        observer.sendMessageToTopic(
+                            new updateNodeDTO(
+                                inputQueues.get(i).getId(),
+                                id,
+                                "move",
+                                activeItem.getDTO()
+                            )
+                        );
+                        timeSlept = 0;
+                    }
                     i = (i + 1) % inputQueues.size();
                 }
             } catch (InterruptedException e) {
