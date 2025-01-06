@@ -253,30 +253,35 @@ function App() {
       running: true,
       pause: false
     })
+    startAnimation()
   }
   const handleReplay = () => {
     setSimulationStatus({
       running: true,
       pause: false
     })
+    startAnimation()
   }
   const handlePause = () => {
     setSimulationStatus({
       running: true,
       pause: true
     })
+    stopAnimation()
   }
   const handleResume = () => {
     setSimulationStatus({
       running: true,
       pause: false
     })
+    startAnimation()
   }
   const handleEnd = () => {
     setSimulationStatus({
       running: false,
       pause: false
     })
+    stopAnimation()
   }
 
   useEffect(() => {

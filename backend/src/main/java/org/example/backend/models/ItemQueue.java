@@ -1,6 +1,5 @@
 package org.example.backend.models;
 
-
 import org.example.backend.models.Item;
 import org.example.backend.models.Graph;
 import org.example.backend.DTOs.StatusDTO;
