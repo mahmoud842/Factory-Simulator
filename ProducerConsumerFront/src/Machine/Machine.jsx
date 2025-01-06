@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { FaCog } from 'react-icons/fa'; // Gear icon from react-icons
 import './Machine.css'; // Import the CSS file
 
-const Machine = ({ data }) => {
-    // const [backgroundColor, setBackgroundColor] = useState('#f5f5f5')
+const Machine = ({ data}) => {
+    const [isRolling, setIsRolling] = useState(true);
 
-    // useEffect(() => {
-    //     console.log('color changed')
-    //     setBackgroundColor()
-    // }, [data.products])
+    useEffect(() => {
+        console.log(data.products.length > 0)
+        setIsRolling(data.products.length > 0); 
+    }, [data.products]);
 
     return (
         <div
@@ -18,14 +19,12 @@ const Machine = ({ data }) => {
                 borderColor: '#333',
             }}
         >
-            <p
-                className="machine-label"
-                style={{
-                    color: '#000',
-                }}
-            >
-                {data.label}
-            </p>
+            <div className={`gear-icon small-gear ${isRolling ? 'rolling' : ''}`}>
+                <FaCog size={20} /> 
+            </div>
+            <div className={`gear-icon big-gear ${isRolling ? 'rolling' : ''}`}>
+                <FaCog size={32} />
+            </div>
             <Handle
                 type="source"
                 position={Position.Right}

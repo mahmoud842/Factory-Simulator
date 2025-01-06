@@ -46,7 +46,7 @@ function App() {
   const getId = () =>` dndnode_${id.current++}`;
 
   const nodeTypes = {
-    Machine,
+    Machine: (props) => <Machine {...props}  />,
     Queue,
     Product,
   };

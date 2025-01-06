@@ -12,11 +12,50 @@
     border-radius: 50%;
 }
 
-.machine-label {
-    margin: 0;
-    font-weight: bold;
-    font-family: Arial, sans-serif;
+
+.gear-icon {
+    position: absolute;
+    transition: transform 0.5s ease-in-out;
 }
+
+.big-gear {
+    top: 20%;
+    left: 20%;
+}
+
+.small-gear {
+    top: 50%;
+    left: 50%;
+}
+
+/* Clockwise rotation for the big gear */
+.rolling.big-gear {
+    animation: roll-clockwise 2s linear infinite;
+}
+
+/* Counterclockwise rotation for the small gear */
+.rolling.small-gear {
+    animation: roll-counterclockwise 2s linear infinite;
+}
+
+@keyframes roll-clockwise {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes roll-counterclockwise {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
 
 .machine-handle {
     background: #555;

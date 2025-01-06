@@ -19,9 +19,9 @@ const Queue = ({ data, id }) => {
                 <img 
                     src="src/assets/pics/queue (1).png" 
                     alt="Queue" 
-                    style={{ marginLeft: '-10px', marginRight: '25px', height: '30px', width: '30px' }} 
+                    style={{ marginLeft: '-8px', marginRight: '25px', height: '30px', width: '30px' }} 
                 />
-                <span style={{ fontSize: '12px', position: 'relative', top: '-10px' }}>
+                <span style={{ fontSize: '18px', position: 'relative', top: '-10px' }}>
                         {data.products.length}
                 </span>
             </div>
