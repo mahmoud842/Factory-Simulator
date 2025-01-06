@@ -15,7 +15,16 @@ const Queue = ({ data, id }) => {
 
     return (
         <div className="queue">
-            <p className="queue-label">{data.label || 'Queue'}</p>
+            <div>
+                <img 
+                    src="src/assets/pics/queue (1).png" 
+                    alt="Queue" 
+                    style={{ marginLeft: '-10px', marginRight: '25px', height: '30px', width: '30px' }} 
+                />
+                <span style={{ fontSize: '12px', position: 'relative', top: '-10px' }}>
+                        {data.products.length}
+                </span>
+            </div>
 
             {/* Scrollable container for products */}
             <div className="queue-products">

@@ -13,7 +13,8 @@ class SocketHandler {
         handleReplay,
         handlePause,
         handleResume,
-        handleEnd
+        handleEnd,
+        handleMassage
     ) {
         this.updateNodes = updateNodes
         this.graphDTO = graphDTO
@@ -23,6 +24,7 @@ class SocketHandler {
         this.handlePause = handlePause
         this.handleResume = handleResume
         this.handleEnd = handleEnd
+        this.handleMassage = handleMassage
     }
 
     async initiateWebSocket() {
@@ -42,19 +44,24 @@ class SocketHandler {
                     switch (jsonData.action) {
                         case "start":
                             this.handleSimulate()
+                            this.handleMassage("Simulation started")
                             break;
                         case "replay":
                             this.handleReplay()
+                            this.handleMassage("Replaying simulation")
                             break;
                         case "pause":
                             this.handlePause()
+                            this.handleMassage("Simulation paused")
                             break;
                         case "resume":
                             this.handleResume()
+                            this.handleMassage("Simulation resumed")
                             break;
                         case "terminate":
                         case "end":
                             this.handleEnd()
+                            this.handleMassage("Simulation ended")
                             break;
                     }
                 })
