@@ -17,12 +17,14 @@ public class ItemsManager implements Runnable{
 
     private final Object pauseLock = new Object();
     private volatile boolean isPaused = false;
+    private long timeSlept;
 
     public ItemsManager(Observer observer) {
         this.items = new ArrayList<>();
         this.itemsSleepTime = new ArrayList<>();
         this.startQueue = null;
         this.observer = observer;
+        this.timeSlept = 0;
     }
 
     public void setComponents(List<Item> items, List<Long> itemsSleepTime, ItemQueue startQueue){
@@ -58,24 +60,30 @@ public class ItemsManager implements Runnable{
                         pauseLock.wait();
                     }
                 }
-                Thread.sleep(itemsSleepTime.get(i));
-                observer.sendMessageToTopic(
-                    new updateNodeDTO(
-                        -1,
-                        startQueue.getId(),
-                        "move",
-                        items.get(i).getDTO()
-                    )
-                );
-                startQueue.push(items.get(i));
-                i++;
+                while (timeSlept != itemsSleepTime.get(i) && !isPaused){
+                    long s = Math.min(20, itemsSleepTime.get(i) - timeSlept);
+                    Thread.sleep(s);
+                    timeSlept += s;
+                }
+                if (itemsSleepTime.get(i) == timeSlept && !isPaused) {
+                    observer.sendMessageToTopic(
+                        new updateNodeDTO(
+                            -1,
+                            startQueue.getId(),
+                            "move",
+                            items.get(i).getDTO()
+                        )
+                    );
+                    startQueue.push(items.get(i));
+                    timeSlept = 0;
+                    i++;
+                }
             }
             catch (InterruptedException e){
                 System.out.println("ItemManager stopped due to error");
                 Thread.currentThread().interrupt();
                 break;
             }
-            
         }
     }
 
