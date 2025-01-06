@@ -46,8 +46,6 @@ public class Machine implements Runnable {
                         pauseLock.wait();
                     }
                 }
-
-                activeItem = inputQueues.get(i).pop();
                 if (activeItem != null) {
                     observer.sendMessageToTopic(
                         new updateNodeDTO(
@@ -69,7 +67,10 @@ public class Machine implements Runnable {
                     outputQueue.push(activeItem);
                     activeItem = null;
                 }
-                i = (i + 1) % inputQueues.size();
+                else {
+                    activeItem = inputQueues.get(i).pop();
+                    i = (i + 1) % inputQueues.size();
+                }
             } catch (InterruptedException e) {
                 System.out.print("Machine: ");
                 System.out.print(id);
