@@ -40,4 +40,8 @@ public class SimulationService {
         return graph.replaySimulation();
     }
 
+    public boolean terminateSimulation() {
+        return graph.endSimulation();
+    }
+
 }
