@@ -184,6 +184,90 @@ function App() {
     };
   }, []);
   
+  // Save/load functionality
+const saveGraph = (nodes, edges) => {
+  // Create a deep copy of nodes and clear products
+  const nodesToSave = nodes.map(node => ({
+    ...node,
+    data: {
+      ...node.data,
+      products: [] // Clear products array while keeping other data intact
+    }
+  }));
+
+  return {
+    nodes: nodesToSave,
+    edges: edges,
+    lastNodeId: id.current // Save the current ID counter
+  };
+};
+
+const loadGraph = (graphData, setNodes, setEdges, idRef) => {
+  // Restore nodes with the onProductUpdate function
+  const loadedNodes = graphData.nodes.map(node => ({
+    ...node,
+    data: {
+      ...node.data,
+      onProductUpdate: (nodeId, updatedProducts) => {
+        setNodes(nodes => nodes.map(n => 
+          n.id === nodeId ? { ...n, data: { ...n.data, products: updatedProducts }} : n
+        ));
+      }
+    }
+  }));
+
+  setNodes(loadedNodes);
+  setEdges(graphData.edges);
+  idRef.current = graphData.lastNodeId; // Restore the ID counter
+};
+
+const saveFileToLocal = async (nodes, edges) => {
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: 'simulation.json',
+      types: [{
+        description: 'JSON Files',
+        accept: {
+          'application/json': ['.json']
+        }
+      }]
+    });
+
+    const graphData = saveGraph(nodes, edges);
+    const content = JSON.stringify(graphData, null, 2);
+    
+    const writable = await handle.createWritable();
+    await writable.write(content);
+    await writable.close();
+
+    console.log('Simulation saved successfully!');
+  } catch (err) {
+    console.error('File save canceled or failed', err);
+  }
+};
+
+const loadFileFromLocal = async (setNodes, setEdges, idRef) => {
+  try {
+    handleClear() 
+    const [handle] = await window.showOpenFilePicker({
+      types: [{
+        description: 'JSON Files',
+        accept: {
+          'application/json': ['.json']
+        }
+      }]
+    });
+
+    const file = await handle.getFile();
+    const content = await file.text();
+    const graphData = JSON.parse(content);
+    
+    loadGraph(graphData, setNodes, setEdges, idRef);
+    console.log('Simulation loaded successfully!');
+  } catch (err) {
+    console.error('File load canceled or failed', err);
+  }
+};
 
   return (
     <div className="app-with-above-buttons">
@@ -248,6 +332,15 @@ function App() {
             <img src="src/assets/pics/cleaning.png" alt="Clear" />
             Clear
           </div>
+          <div className="button" onClick={() => saveFileToLocal(nodes, edges)}>
+          <img src="src/assets/pics/save.png" alt="Save" />
+          Save
+        </div>
+        <div className="button" onClick={() => loadFileFromLocal(setNodes, setEdges, id)}>
+          <img src="src/assets/pics/load.png" alt="Load" />
+          Load
+        </div>
+
         </div>
 
         <div className="react-flow">
