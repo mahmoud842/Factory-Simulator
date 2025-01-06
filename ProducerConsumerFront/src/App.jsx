@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef ,useEffect,useMemo } from 'react';
 import { saveGraph, saveFileToLocal, loadFileFromLocal, loadGraph } from './SaveAndLoad.jsx'
 import { ReactFlow, Background, Controls, applyNodeChanges, applyEdgeChanges, addEdge, useReactFlow } from '@xyflow/react';
+import { throttle } from 'lodash';
 import '@xyflow/react/dist/style.css';
 import { Snackbar, Alert } from '@mui/material';
 import { useDnD } from './ContextDnD';
@@ -227,7 +228,7 @@ function App() {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const updateNodes = (message) => {
+  const updateNodes = throttle((message) => {
     console.log(message)
     setNodes((n) => {
       const newNodes = n.map((node) => {
@@ -245,7 +246,7 @@ function App() {
       });
       return newNodes;
     });
-  }
+  }, 20)
 
   const clearProducts = () => {
     setNodes((n) => {

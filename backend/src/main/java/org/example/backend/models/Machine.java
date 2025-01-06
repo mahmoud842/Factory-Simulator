@@ -41,6 +41,7 @@ public class Machine implements Runnable {
 
     public void run(){
         int i = 0;
+        isPaused = false;
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 synchronized (pauseLock) {
@@ -81,7 +82,7 @@ public class Machine implements Runnable {
                     i = (i + 1) % inputQueues.size();
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                // e.printStackTrace();
                 Thread.currentThread().interrupt();
                 break;
             }

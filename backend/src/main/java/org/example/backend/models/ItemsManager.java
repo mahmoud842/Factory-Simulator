@@ -54,6 +54,7 @@ public class ItemsManager implements Runnable{
     public void run() {
         int i = 0;
         timeSlept = itemsSleepTime.get(i);
+        isPaused = false;
         while (i < items.size() && !Thread.currentThread().isInterrupted()) {
             try {
                 synchronized (pauseLock) {
